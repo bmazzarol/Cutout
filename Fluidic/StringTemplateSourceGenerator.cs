@@ -1,3 +1,5 @@
+using System.CodeDom.Compiler;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -68,19 +70,20 @@ public sealed partial class StringTemplateSourceGenerator : IIncrementalGenerato
         var containingType = methodSymbol.ContainingType;
         var @class = containingType.Name;
         var name = methodDeclarationSyntax.Identifier.Text;
+        var methodDetails = new MethodDetails(
+            Name: name,
+            MethodDeclaration: methodDeclarationSyntax,
+            MethodSymbol: methodSymbol
+        );
 
         // get the attribute details
-        var attributeParts = new StringTemplateAttributeParts(methodDeclarationSyntax);
+        var attributeParts = new StringTemplateAttributeParts(methodDetails, ctx.SemanticModel);
 
         return new TemplateMethodDetails(
             Namespace: ns,
             Usings: usings,
             ClassName: @class,
-            MethodDetails: new MethodDetails(
-                Name: name,
-                MethodDeclaration: methodDeclarationSyntax,
-                MethodSymbol: methodSymbol
-            ),
+            MethodDetails: methodDetails,
             AttributeDetails: attributeParts
         );
     }
@@ -90,10 +93,14 @@ public sealed partial class StringTemplateSourceGenerator : IIncrementalGenerato
         TemplateMethodDetails details
     )
     {
-        var source = RenderTemplateMethod(details);
+        using var writer = new StringWriter();
+        var indentedWriter = new IndentedTextWriter(writer, "    ");
+
+        WriteTemplateMethod(indentedWriter, details);
+
         context.AddSource(
             $"{details.ClassName}.{details.MethodDetails.Name}.g.cs",
-            SourceText.From(source, Encoding.UTF8)
+            SourceText.From(writer.ToString(), Encoding.UTF8)
         );
     }
 }
