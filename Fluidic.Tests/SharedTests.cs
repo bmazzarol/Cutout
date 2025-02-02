@@ -12,10 +12,11 @@ public sealed class SharedTests
 
             internal static partial class Test
             {
-                [StringTemplate("test")]
-                public static partial void Test(this StringBuilder builder);
+                [StringTemplate("test {{value}}")]
+                public static partial void Test(this StringBuilder builder, string value);
             }
             """.BuildDriver();
-        return Verify(driver);
+        
+        return Verify(driver).IgnoreGeneratedResult(result => result.HintName.StartsWith("Test"));
     }
 }

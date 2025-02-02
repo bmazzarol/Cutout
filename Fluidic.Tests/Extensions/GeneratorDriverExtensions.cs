@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -19,6 +20,23 @@ public static class GeneratorDriverExtensions
         var generator = new StringTemplateSourceGenerator();
         var driver = CSharpGeneratorDriver.Create(generator);
         return driver.RunGenerators(compilation);
+    }
+    
+    internal static Task VerifyStringTemplate(
+        this string? source,
+        [CallerFilePath] string sourceFile = ""
+    )
+    {
+        var driver = $$"""
+                       using System;
+                       using Fluidic;
+
+                       internal static class Test
+                       {
+                          {{source}}
+                       }
+                       """.BuildDriver();
+        return Verify(driver, sourceFile: sourceFile).IgnoreStandardSupportCode();
     }
 
     internal static SettingsTask IgnoreStandardSupportCode(this SettingsTask settings)

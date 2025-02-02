@@ -13,14 +13,14 @@ public sealed partial class StringTemplateSourceGenerator
         namespace Fluidic;
 
         /// <summary>
-        /// Marks a method a string template generator, this method will be created to generate
-        /// into a string builder like object, based on a provided constant liquid template.
+        /// Marks a method as a string template generator, this method will be implemented to write
+        /// into a string builder like object, based on a provided liquid/scribben template
         /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         internal sealed class StringTemplateAttribute : Attribute
         {
             /// <summary>
-            /// The liquid template to use for generating the string.
+            /// The template to use for generating the builder code
             /// </summary>
             public string? Template { get; set; }
             
