@@ -15,8 +15,8 @@ public sealed class SharedTests
                 [StringTemplate("test {{value}}")]
                 public static partial void Test(this StringBuilder builder, string value);
             }
-            """.BuildDriver();
-        
+            """.BuildDriver([]);
+
         return Verify(driver).IgnoreGeneratedResult(result => result.HintName.StartsWith("Test"));
     }
 }

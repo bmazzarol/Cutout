@@ -21,6 +21,6 @@ public sealed partial class StringTemplateSourceGenerator
         SyntaxList<UsingDirectiveSyntax> Usings,
         string? ClassName,
         MethodDetails MethodDetails,
-        StringTemplateAttributeParts AttributeDetails
+        TemplateAttributeParts AttributeDetails
     );
 }

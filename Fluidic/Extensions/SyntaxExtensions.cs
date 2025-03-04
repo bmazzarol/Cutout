@@ -18,4 +18,17 @@ internal static class SyntaxExtensions
             };
         return result;
     }
+
+    public static bool IsNamedAttribute(this AttributeSyntax syntax, string name)
+    {
+        if (string.Equals(syntax.Name.ToString(), name, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        var parts = name.Split('.');
+
+        return parts.Length == 2
+            && string.Equals(syntax.Name.ToString(), parts[1], StringComparison.Ordinal);
+    }
 }

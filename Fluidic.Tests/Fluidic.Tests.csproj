@@ -7,18 +7,25 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
-        <PackageReference Include="Verify.SourceGenerators" />
-        <PackageReference Include="Verify.XunitV3" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing"/>
+        <PackageReference Include="Verify.SourceGenerators"/>
+        <PackageReference Include="Verify.XunitV3"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Fluidic\Fluidic.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+        <ProjectReference Include="..\Fluidic\Fluidic.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="Fluidic.Tests.Examples.FileTest.liquid">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <AdditionalFiles Include="Fluidic.Tests.Examples.FileTest.liquid"/>
     </ItemGroup>
 
 </Project>

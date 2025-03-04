@@ -1,13 +1,12 @@
 using System.CodeDom.Compiler;
-using System.IO;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Text;
-using System.Threading;
 using Fluidic.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Scriban.Parsing;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Fluidic;
@@ -20,18 +19,66 @@ public sealed partial class StringTemplateSourceGenerator : IIncrementalGenerato
         context.RegisterPostInitializationOutput(ctx =>
         {
             ctx.AddSource("StringTemplateAttribute.g", StringTemplateAttributeSourceCode);
+            ctx.AddSource("FileTemplateAttribute.g", FileTemplateAttributeSourceCode);
         });
 
-        var refinedTypeDetailsProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
+        var stringTemplateProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
             "Fluidic.StringTemplateAttribute",
             IsTemplateMethod,
             BuildTemplateDetails
         );
 
-        context.RegisterSourceOutput(refinedTypeDetailsProvider, GenerateStringTemplate);
+        context.RegisterSourceOutput(stringTemplateProvider, GenerateStringTemplate);
+
+        var liquidFiles = context.AdditionalTextsProvider.Where(x =>
+            x.Path.EndsWith(".liquid", StringComparison.Ordinal)
+        );
+        var fileTemplateProvider = context
+            .SyntaxProvider.ForAttributeWithMetadataName(
+                "Fluidic.FileTemplateAttribute",
+                IsTemplateMethod,
+                BuildTemplateDetails
+            )
+            .Combine(liquidFiles.Collect())
+            .Select(
+                (x, _) =>
+                {
+                    var attributeDetails = BuildAttributeDetails(x.Left, x.Right);
+                    return x.Left with { AttributeDetails = attributeDetails };
+                }
+            );
+
+        context.RegisterSourceOutput(fileTemplateProvider, GenerateStringTemplate);
     }
 
-    private bool IsTemplateMethod(SyntaxNode syntax, CancellationToken token)
+    private TemplateAttributeParts BuildAttributeDetails(
+        TemplateMethodDetails currentDetails,
+        ImmutableArray<AdditionalText> additionalText
+    )
+    {
+        var text = additionalText.FirstOrDefault(x =>
+            x.Path.EndsWith(
+                currentDetails.AttributeDetails.TemplatePath ?? string.Empty,
+                StringComparison.Ordinal
+            )
+        );
+
+        if (text?.GetText()?.ToString() is not { } content)
+        {
+            return currentDetails.AttributeDetails;
+        }
+
+        var lexer = new Lexer(content);
+        var tokens = lexer.ToArray();
+
+        return currentDetails.AttributeDetails with
+        {
+            Template = content,
+            Tokens = tokens,
+        };
+    }
+
+    private static bool IsTemplateMethod(SyntaxNode syntax, CancellationToken token)
     {
         return syntax is MethodDeclarationSyntax mds
             // the method is either static
@@ -45,7 +92,7 @@ public sealed partial class StringTemplateSourceGenerator : IIncrementalGenerato
             );
     }
 
-    private TemplateMethodDetails BuildTemplateDetails(
+    private static TemplateMethodDetails BuildTemplateDetails(
         GeneratorAttributeSyntaxContext ctx,
         CancellationToken token
     )
@@ -77,7 +124,7 @@ public sealed partial class StringTemplateSourceGenerator : IIncrementalGenerato
         );
 
         // get the attribute details
-        var attributeParts = new StringTemplateAttributeParts(methodDetails, ctx.SemanticModel);
+        var attributeParts = new TemplateAttributeParts(methodDetails, ctx.SemanticModel);
 
         return new TemplateMethodDetails(
             Namespace: ns,
@@ -88,7 +135,7 @@ public sealed partial class StringTemplateSourceGenerator : IIncrementalGenerato
         );
     }
 
-    private void GenerateStringTemplate(
+    private static void GenerateStringTemplate(
         SourceProductionContext context,
         TemplateMethodDetails details
     )
