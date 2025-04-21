@@ -79,16 +79,50 @@ public sealed partial class StringTemplateSourceGenerator
                 case TokenType.CodeEnter:
                     var position = token.End.Offset + 1;
 
+                    // capture any potential identifiers
+                    var peekNextToken = model.AttributeDetails.Tokens[i + 1];
+
+                    string? identifier = null;
+                    if (peekNextToken.Type == TokenType.Identifier)
+                    {
+                        identifier = template.Substring(
+                            peekNextToken.Start.Offset,
+                            length: peekNextToken.End.Offset - peekNextToken.Start.Offset + 1
+                        );
+                    }
+
                     while (token.Type != TokenType.CodeExit)
                     {
                         token = model.AttributeDetails.Tokens[++i];
                     }
 
-                    writer.Write("builder.Append(");
-                    writer.Write(
-                        template.Substring(position, length: token.Start.Offset - position)
-                    );
-                    writer.WriteLine(");");
+                    switch (identifier)
+                    {
+                        case "if":
+                            var ifTokenPosition = peekNextToken.End.Offset + 1;
+                            writer.Write("if (");
+                            writer.Write(
+                                template.Substring(
+                                    ifTokenPosition,
+                                    token.Start.Offset - ifTokenPosition
+                                )
+                            );
+                            writer.WriteLine(")");
+                            writer.WriteLine("{");
+                            writer.Indent++;
+                            break;
+                        case "end":
+                            writer.Indent--;
+                            writer.WriteLine("}");
+                            break;
+                        default:
+                            writer.Write("builder.Append(");
+                            writer.Write(
+                                template.Substring(position, length: token.Start.Offset - position)
+                            );
+                            writer.WriteLine(");");
+                            break;
+                    }
 
                     break;
                 default:
