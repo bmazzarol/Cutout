@@ -12,7 +12,7 @@ public static partial class Examples
 
 public class FileTemplateTests
 {
-    [Fact(DisplayName = "A simple example can be rendered into a string", Skip = "Not working yet")]
+    [Fact(DisplayName = "A simple example can be rendered into a string")]
     public void Case1()
     {
         var builder = new StringBuilder();
@@ -24,6 +24,7 @@ public class FileTemplateTests
             This is a test file.
 
             And it has some content in it.
+
             """,
             builder.ToString()
         );
@@ -38,7 +39,16 @@ public class FileTemplateTests
             [
                 new TestAdditionalFile(
                     "Test.FileTest.liquid",
-                    SourceText.From("This is a very simple example")
+                    SourceText.From(
+                        """
+                        This is a very simple example
+
+                        This is a new line
+                        And so is this
+
+                        Let's add some more lines
+                        """
+                    )
                 ),
             ]
         );

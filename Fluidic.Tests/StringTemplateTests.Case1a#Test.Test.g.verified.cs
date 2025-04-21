@@ -12,6 +12,6 @@ public static partial class Test
 {
     public static partial void Test(this StringBuilder builder)
     {
-        builder.Append("This is a very simple example");
+        builder.Append(@"This is a very simple example");
     }
 }

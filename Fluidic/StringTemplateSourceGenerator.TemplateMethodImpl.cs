@@ -66,14 +66,15 @@ public sealed partial class StringTemplateSourceGenerator
             switch (token.Type)
             {
                 case TokenType.Raw:
-                    writer.Write("builder.Append(\"");
-                    writer.Write(
-                        template.Substring(
-                            token.Start.Offset,
-                            length: token.End.Offset - token.Start.Offset + 1
-                        )
+                    var rawText = template.Substring(
+                        token.Start.Offset,
+                        length: token.End.Offset - token.Start.Offset + 1
                     );
+
+                    writer.Write("builder.Append(@\"");
+                    writer.Write(rawText);
                     writer.WriteLine("\");");
+
                     break;
                 case TokenType.CodeEnter:
                     var position = token.End.Offset + 1;

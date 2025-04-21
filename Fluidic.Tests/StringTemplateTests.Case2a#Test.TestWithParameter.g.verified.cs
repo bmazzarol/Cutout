@@ -12,7 +12,7 @@ public static partial class Test
 {
     public static partial void TestWithParameter(this StringBuilder builder, Int32 param)
     {
-        builder.Append("This is a more complex example with a parameter: ");
+        builder.Append(@"This is a more complex example with a parameter: ");
         builder.Append( param );
     }
 }
