@@ -64,7 +64,7 @@ public sealed partial class StringTemplateSourceGenerator
         // The name of the file is the name of the method inclusive of the class name and namespace with .liquid extension
         private static string? BuildFileNameFromMethodName(MethodDetails details)
         {
-            return $"{details.MethodSymbol.ContainingNamespace}.{details.MethodSymbol.ContainingType}.{details.MethodSymbol.Name}.liquid";
+            return $"{details.MethodSymbol.ContainingType}.{details.MethodSymbol.Name}.liquid";
         }
     }
 }

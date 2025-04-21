@@ -12,6 +12,11 @@ public static partial class Test
 {
     public static partial void FileTest(this StringBuilder builder)
     {
-        builder.Append("This is a very simple example");
+        builder.Append(@"This is a very simple example
+
+This is a new line
+And so is this
+
+Let's add some more lines");
     }
 }
