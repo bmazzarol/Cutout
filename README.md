@@ -5,13 +5,11 @@
 
 # Fluidic
 
-[:running: **_Getting Started_
-**](https://bmazzarol.github.io/Fluidic/getting-started.html)
+[:running: **_Getting Started_**](https://bmazzarol.github.io/Fluidic/getting-started.html)
 |
 [:books: **_Documentation_**](https://bmazzarol.github.io/Fluidic)
 
-[![Nuget](https://img.shields.io/nuget/v/tuxedo.sourcegenerator)]
-(https://www.nuget.org/packages/fluidic.sourcegenerator/)
+[![Nuget](https://img.shields.io/nuget/v/tuxedo.sourcegenerator)](https://www.nuget.org/packages/fluidic.sourcegenerator/)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Tuxedo&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Tuxedo)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Tuxedo&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Tuxedo)
 [![CD Build](https://github.com/bmazzarol/tuxedo/actions/workflows/cd-build.yml/badge.svg)](https://github.com/bmazzarol/tuxedo/actions/workflows/cd-build.yml)
