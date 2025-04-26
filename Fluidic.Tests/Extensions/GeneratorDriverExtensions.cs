@@ -28,16 +28,16 @@ public static class GeneratorDriverExtensions
             source != null ? [CSharpSyntaxTree.ParseText(source)] : [],
             [
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(StringTemplateAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(TemplateAttribute).Assembly.Location),
             ],
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
-        var generator = new StringTemplateSourceGenerator();
+        var generator = new TemplateSourceGenerator();
         var driver = CSharpGeneratorDriver.Create(generator).AddAdditionalTexts(additionalTexts);
         return driver.RunGenerators(compilation);
     }
 
-    internal static Task VerifyStringTemplate(
+    internal static Task VerifyTemplate(
         this string? source,
         [CallerFilePath] string sourceFile = ""
     )
@@ -54,28 +54,8 @@ public static class GeneratorDriverExtensions
         return Verify(driver, sourceFile: sourceFile).IgnoreStandardSupportCode();
     }
 
-    internal static Task VerifyFileTemplate(
-        this string? source,
-        ImmutableArray<AdditionalText> additionalTexts,
-        [CallerFilePath] string sourceFile = ""
-    )
-    {
-        var driver = $$"""
-            using System;
-            using Fluidic;
-
-            internal static class Test
-            {
-               {{source}}
-            }
-            """.BuildDriver(additionalTexts);
-        return Verify(driver, sourceFile: sourceFile).IgnoreStandardSupportCode();
-    }
-
     internal static SettingsTask IgnoreStandardSupportCode(this SettingsTask settings)
     {
-        return settings.IgnoreGeneratedResult(x =>
-            x.HintName is "StringTemplateAttribute.g.cs" or "FileTemplateAttribute.g.cs"
-        );
+        return settings.IgnoreGeneratedResult(x => x.HintName is "TemplateAttribute.g.cs");
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Fluidic;
 
-public sealed partial class StringTemplateSourceGenerator
+public sealed partial class TemplateSourceGenerator
 {
     private sealed record MethodDetails(
         string? Name,

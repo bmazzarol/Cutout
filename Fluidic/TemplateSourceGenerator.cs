@@ -2,6 +2,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Immutable;
 using System.Text;
 using Fluidic.Extensions;
+using Fluidic.Parser;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,70 +13,22 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Fluidic;
 
 [Generator]
-public sealed partial class StringTemplateSourceGenerator : IIncrementalGenerator
+public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx =>
         {
-            ctx.AddSource("StringTemplateAttribute.g", StringTemplateAttributeSourceCode);
-            ctx.AddSource("FileTemplateAttribute.g", FileTemplateAttributeSourceCode);
+            ctx.AddSource("TemplateAttribute.g", TemplateAttributeSourceCode);
         });
 
-        var stringTemplateProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
-            "Fluidic.StringTemplateAttribute",
+        var templateProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
+            "Fluidic.TemplateAttribute",
             IsTemplateMethod,
             BuildTemplateDetails
         );
 
-        context.RegisterSourceOutput(stringTemplateProvider, GenerateStringTemplate);
-
-        var liquidFiles = context.AdditionalTextsProvider.Where(x =>
-            x.Path.EndsWith(".liquid", StringComparison.Ordinal)
-        );
-        var fileTemplateProvider = context
-            .SyntaxProvider.ForAttributeWithMetadataName(
-                "Fluidic.FileTemplateAttribute",
-                IsTemplateMethod,
-                BuildTemplateDetails
-            )
-            .Combine(liquidFiles.Collect())
-            .Select(
-                (x, _) =>
-                {
-                    var attributeDetails = BuildAttributeDetails(x.Left, x.Right);
-                    return x.Left with { AttributeDetails = attributeDetails };
-                }
-            );
-
-        context.RegisterSourceOutput(fileTemplateProvider, GenerateStringTemplate);
-    }
-
-    private TemplateAttributeParts BuildAttributeDetails(
-        TemplateMethodDetails currentDetails,
-        ImmutableArray<AdditionalText> additionalText
-    )
-    {
-        var text = additionalText.FirstOrDefault(x =>
-            x.Path.EndsWith(
-                currentDetails.AttributeDetails.TemplatePath ?? string.Empty,
-                StringComparison.Ordinal
-            )
-        );
-
-        if (text?.GetText()?.ToString() is not { } content)
-        {
-            return currentDetails.AttributeDetails;
-        }
-
-        var lexer = new Lexer(content);
-        var tokens = lexer.ToArray();
-
-        return currentDetails.AttributeDetails with
-        {
-            Template = content,
-            Tokens = tokens,
-        };
+        context.RegisterSourceOutput(templateProvider, GenerateTemplate);
     }
 
     private static bool IsTemplateMethod(SyntaxNode syntax, CancellationToken token)
@@ -135,7 +88,7 @@ public sealed partial class StringTemplateSourceGenerator : IIncrementalGenerato
         );
     }
 
-    private static void GenerateStringTemplate(
+    private static void GenerateTemplate(
         SourceProductionContext context,
         TemplateMethodDetails details
     )

@@ -12,7 +12,7 @@ public sealed class SharedTests
 
             internal static partial class Test
             {
-                [StringTemplate("test {{value}}")]
+                [Template("test {{value}}")]
                 public static partial void Test(this StringBuilder builder, string value);
             }
             """.BuildDriver([]);

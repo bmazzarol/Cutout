@@ -8,15 +8,18 @@ internal static class SyntaxExtensions
 {
     public static SyntaxList<UsingDirectiveSyntax> TryGetUsings(this SyntaxNode node)
     {
-        SyntaxList<UsingDirectiveSyntax> result = SyntaxFactory.List<UsingDirectiveSyntax>();
-        foreach (var ancestor in node.Ancestors(ascendOutOfTrivia: false))
-            result = ancestor switch
-            {
-                NamespaceDeclarationSyntax syntax => result.AddRange(syntax.Usings),
-                CompilationUnitSyntax syntax => result.AddRange(syntax.Usings),
-                _ => result,
-            };
-        return result;
+        var result = SyntaxFactory.List<UsingDirectiveSyntax>();
+        return node.Ancestors(ascendOutOfTrivia: false)
+            .Aggregate(
+                result,
+                static (current, ancestor) =>
+                    ancestor switch
+                    {
+                        NamespaceDeclarationSyntax syntax => current.AddRange(syntax.Usings),
+                        CompilationUnitSyntax syntax => current.AddRange(syntax.Usings),
+                        _ => current,
+                    }
+            );
     }
 
     public static bool IsNamedAttribute(this AttributeSyntax syntax, string name)

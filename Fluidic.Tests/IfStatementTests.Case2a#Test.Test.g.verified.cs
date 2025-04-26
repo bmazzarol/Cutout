@@ -12,9 +12,13 @@ public static partial class Test
 {
     public static partial void Test(this StringBuilder builder, String product)
     {
-        if ( product == "Awesome Shoes" )
+        if (product == "Awesome Shoes")
         {
             builder.Append(@" These shoes are awesome! ");
+        }
+        else
+        {
+            builder.Append(@" These shoes are not awesome! ");
         }
     }
 }
