@@ -439,4 +439,29 @@ public sealed class TemplateParserTests
             item => Assert.IsType<Syntax.ReturnStatement>(item)
         );
     }
+
+    [Fact(DisplayName = "A call statement can be parsed")]
+    public void Case26()
+    {
+        const string template = "{{ call method(param1, param2) }}";
+        var tokens = new Lexer(template).ToArray();
+        var result = TemplateParser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        var callStatement = Assert.IsType<Syntax.CallStatement>(item);
+        Assert.Equal("method", callStatement.Name);
+        Assert.Equal("param1, param2", callStatement.Parameters);
+    }
+
+    [Fact(DisplayName = "A invalid call statement will throw an exception (invalid token)")]
+    public void Case27()
+    {
+        const string template = "{{ call method(param1, param2) invalid }}";
+        var tokens = new Lexer(template).ToArray();
+        var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 0:31 (Identifier): Invalid call statement. Expected format: 'MethodName(...)'. (value: 'invalid')",
+            exception.Message
+        );
+    }
 }

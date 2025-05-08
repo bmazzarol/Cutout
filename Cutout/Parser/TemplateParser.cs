@@ -183,6 +183,12 @@ internal static partial class TemplateParser
             return ParseVarStatement(tokens, template, ref index);
         }
 
+        if (span.SequenceEqual(Identifiers.Call))
+        {
+            index++;
+            return ParseCallStatement(tokens, template, ref index);
+        }
+
         if (span.SequenceEqual(Identifiers.Break))
         {
             EnsureKeywordStatementOnly("break", tokens, template, index: index + 1);

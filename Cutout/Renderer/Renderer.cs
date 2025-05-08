@@ -13,6 +13,9 @@ internal static class Renderer
             case Syntax.VarStatement varStatement:
                 writer.WriteLine($"var {varStatement.Assignment};");
                 break;
+            case Syntax.CallStatement callStatement:
+                writer.WriteCallStatement(callStatement);
+                break;
             case Syntax.IfStatement ifStatement:
                 writer.WriteConditionalStatement(ifStatement, "if (");
                 break;
@@ -95,5 +98,16 @@ internal static class Renderer
         writer.WriteLine(")");
 
         WriteExpressions(writer, forStatement.Expressions);
+    }
+
+    private static void WriteCallStatement(
+        this IndentedTextWriter writer,
+        Syntax.CallStatement callStatement
+    )
+    {
+        writer.Write(callStatement.Name);
+        writer.Write("(builder,");
+        writer.Write(callStatement.Parameters);
+        writer.WriteLine(");");
     }
 }

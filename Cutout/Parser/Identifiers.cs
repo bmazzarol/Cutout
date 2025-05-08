@@ -3,6 +3,7 @@
 internal static class Identifiers
 {
     public static readonly char[] Var = ['v', 'a', 'r'];
+    public static readonly char[] Call = ['c', 'a', 'l', 'l'];
     public static readonly char[] If = ['i', 'f'];
 
     public static readonly char[] Else = ['e', 'l', 's', 'e'];

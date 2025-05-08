@@ -84,6 +84,16 @@ internal abstract record Syntax
     }
 
     /// <summary>
+    /// Represents a call to another template method
+    /// </summary>
+    /// <param name="Name">name of the template method to call</param>
+    /// <param name="Parameters">parameters to pass to the template method</param>
+    public sealed record CallStatement(string Name, string Parameters) : Syntax
+    {
+        public override bool SuppressTrailingNewline => true;
+    }
+
+    /// <summary>
     /// Represents a break statement in the template
     /// </summary>
     public sealed record BreakStatement : Syntax
