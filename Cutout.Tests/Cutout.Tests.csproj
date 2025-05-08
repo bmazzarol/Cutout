@@ -21,10 +21,4 @@
         <ProjectReference Include="..\Cutout\Cutout.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <None Update="IfControlTests.Case1a#Test.Test.g.verified.cs">
-        <DependentUpon>IfStatementTests.cs</DependentUpon>
-      </None>
-    </ItemGroup>
-
 </Project>

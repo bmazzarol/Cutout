@@ -54,7 +54,7 @@ internal abstract record Syntax
     /// Represents a for statement in the template
     /// </summary>
     /// <param name="Condition">condition to evaluate; must be a valid for statement in C#</param>
-    /// <param name="Expressions">>expressions to render if the condition is true</param>
+    /// <param name="Expressions">expressions to render if the condition is true</param>
     public sealed record ForStatement(string Condition, IReadOnlyList<Syntax> Expressions)
         : ConditionalStatement(Condition, Expressions);
 
@@ -62,7 +62,7 @@ internal abstract record Syntax
     /// Represents a foreach statement in the template
     /// </summary>
     /// <param name="Condition">condition to evaluate; must be a valid foreach statement in C#</param>
-    /// <param name="Expressions">>expressions to render if the condition is true</param>
+    /// <param name="Expressions">expressions to render if the condition is true</param>
     public sealed record ForeachStatement(string Condition, IReadOnlyList<Syntax> Expressions)
         : ConditionalStatement(Condition, Expressions);
 
@@ -70,7 +70,7 @@ internal abstract record Syntax
     /// Represents a while statement in the template
     /// </summary>
     /// <param name="Condition">condition to evaluate; must be a valid while statement in C#</param>
-    /// <param name="Expressions">>expressions to render if the condition is true</param>
+    /// <param name="Expressions">expressions to render if the condition is true</param>
     public sealed record WhileStatement(string Condition, IReadOnlyList<Syntax> Expressions)
         : ConditionalStatement(Condition, Expressions);
 
@@ -104,7 +104,7 @@ internal abstract record Syntax
     }
 
     /// <summary>
-    /// Represents a break statement in the template
+    /// Represents a continue statement in the template
     /// </summary>
     public sealed record ContinueStatement : Syntax
     {
