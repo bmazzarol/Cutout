@@ -1,26 +1,10 @@
-<!-- markdownlint-disable MD033 MD041 -->
-<div align="center">
+<!-- markdownlint-disable MD013 -->
 
-<img src="scissors-icon.png" alt="Tuxedo" width="150px"/>
+# ![Cutout](https://raw.githubusercontent.com/bmazzarol/Cutout/main/scissors-small-icon.png) Cutout
 
-# Cutout
-
-[:running: **_Getting Started_**](https://bmazzarol.github.io/Cutout/getting-started.html)
-|
-[:books: **_Documentation_**](https://bmazzarol.github.io/Cutout)
+<!-- markdownlint-enable MD013 -->
 
 [![Nuget](https://img.shields.io/nuget/v/cutout)](https://www.nuget.org/packages/cutout/)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Tuxedo&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Tuxedo)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Tuxedo&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Tuxedo)
-[![CD Build](https://github.com/bmazzarol/Cutout/actions/workflows/cd-build.yml/badge.svg)](https://github.com/bmazzarol/Cutout/actions/workflows/cd-build.yml)
-[![Check Markdown](https://github.com/bmazzarol/Cutout/actions/workflows/check-markdown.yml/badge.svg)](https://github.com/bmazzarol/Cutout/actions/workflows/check-markdown.yml)
-
-Zero cost :muscle: source generated templating for .NET
-
-</div>
-<!-- markdownlint-enable MD033 MD041 -->
-
-## Why?
 
 When building source generators there is a requirement to generate source code
 as a string that has indentation managed correctly. The code also needs to be
