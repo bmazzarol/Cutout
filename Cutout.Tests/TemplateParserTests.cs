@@ -451,6 +451,7 @@ public sealed class TemplateParserTests
         var callStatement = Assert.IsType<Syntax.CallStatement>(item);
         Assert.Equal("method", callStatement.Name);
         Assert.Equal("param1, param2", callStatement.Parameters);
+        Assert.Equal(string.Empty, callStatement.LeadingWhitespace);
     }
 
     [Fact(DisplayName = "A invalid call statement will throw an exception (invalid token)")]
@@ -462,6 +463,31 @@ public sealed class TemplateParserTests
         Assert.Equal(
             "Parse error at 0:31 (Identifier): Invalid call statement. Expected format: 'MethodName(...)'. (value: 'invalid')",
             exception.Message
+        );
+    }
+
+    [Fact(DisplayName = "A call statement with leading whitespace can be parsed")]
+    public void Case28()
+    {
+        const string template =
+            "some text \n some other text \n\n       {{ call method(param1, param2) }}";
+        var tokens = new Lexer(template).ToArray();
+        var result = TemplateParser.Parse(tokens, template);
+
+        Assert.Collection(
+            result,
+            item =>
+            {
+                var rawText = Assert.IsType<Syntax.RawText>(item);
+                Assert.Equal("some text \n some other text \n\n       ", rawText.Value);
+            },
+            item =>
+            {
+                var callStatement = Assert.IsType<Syntax.CallStatement>(item);
+                Assert.Equal("method", callStatement.Name);
+                Assert.Equal("param1, param2", callStatement.Parameters);
+                Assert.Equal("       ", callStatement.LeadingWhitespace);
+            }
         );
     }
 }

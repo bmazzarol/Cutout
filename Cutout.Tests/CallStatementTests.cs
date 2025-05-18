@@ -16,6 +16,25 @@ public static partial class CallTemplates
 
     [Template(CallExample2)]
     public static partial void Case2(this StringBuilder builder, string title);
+
+    private const string CallExample3 = """
+        This is an example with a call with leading whitespace,
+        ```
+            {{ call Case4(product) }}
+        ```
+        """;
+
+    [Template(CallExample3)]
+    public static partial void Case3(this StringBuilder builder, Product product);
+
+    private const string CallExample4 = """
+        The title in two calls,
+        {{ product.Title }}
+        {{ product.Title.ToLowerInvariant() }}
+        """;
+
+    [Template(CallExample4)]
+    public static partial void Case4(this StringBuilder builder, Product product);
 }
 
 public sealed class CallStatementTests
@@ -34,4 +53,22 @@ public sealed class CallStatementTests
             [Template("Some text before {{ call Case2(product) }}")]
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
+
+    [Fact(DisplayName = "A call statement with leading whitespace can used")]
+    public void Case2()
+    {
+        var builder = new StringBuilder();
+        builder.Case3(new CallTemplates.Product("Awesome Shoes"));
+        Assert.Equal(
+            """
+            This is an example with a call with leading whitespace,
+            ```
+                The title in two calls,
+                Awesome Shoes
+                awesome shoes
+            ```
+            """,
+            builder.ToString()
+        );
+    }
 }

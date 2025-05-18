@@ -1,13 +1,10 @@
 using System.CodeDom.Compiler;
-using System.Collections.Immutable;
 using System.Text;
 using Cutout.Extensions;
-using Cutout.Parser;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Scriban.Parsing;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Cutout;
@@ -69,6 +66,8 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
         // get the method details
         var containingType = methodSymbol.ContainingType;
         var @class = containingType.Name;
+        var classDetails = new ClassDetails(Name: @class, ClassSymbol: containingType);
+
         var name = methodDeclarationSyntax.Identifier.Text;
         var methodDetails = new MethodDetails(
             Name: name,
@@ -82,7 +81,7 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
         return new TemplateMethodDetails(
             Namespace: ns,
             Usings: usings,
-            ClassName: @class,
+            ClassDetails: classDetails,
             MethodDetails: methodDetails,
             AttributeDetails: attributeParts
         );
@@ -93,14 +92,28 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
         TemplateMethodDetails details
     )
     {
-        using var writer = new StringWriter();
-        var indentedWriter = new IndentedTextWriter(writer, "    ");
+        using (var writer = new StringWriter())
+        {
+            var indentedWriter = new IndentedTextWriter(writer, "    ");
 
-        WriteTemplateMethod(indentedWriter, details);
+            WriteTemplateMethod(indentedWriter, details, includeWhitespaceReceiver: false);
 
-        context.AddSource(
-            $"{details.ClassName}.{details.MethodDetails.Name}.g.cs",
-            SourceText.From(writer.ToString(), Encoding.UTF8)
-        );
+            context.AddSource(
+                $"{details.ClassDetails.Name}.{details.MethodDetails.Name}.g.cs",
+                SourceText.From(writer.ToString(), Encoding.UTF8)
+            );
+        }
+
+        using (var writer = new StringWriter())
+        {
+            var indentedWriter = new IndentedTextWriter(writer, "    ");
+
+            WriteTemplateMethod(indentedWriter, details, includeWhitespaceReceiver: true);
+
+            context.AddSource(
+                $"{details.ClassDetails.Name}.{details.MethodDetails.Name}.wsr.g.cs",
+                SourceText.From(writer.ToString(), Encoding.UTF8)
+            );
+        }
     }
 }

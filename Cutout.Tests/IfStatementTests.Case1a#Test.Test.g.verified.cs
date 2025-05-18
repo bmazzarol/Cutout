@@ -8,9 +8,9 @@ using System;
 
 namespace <global namespace>;
 
-public static partial class Test
+internal static partial class Test
 {
-    public static partial void Test(this StringBuilder builder, String product)
+    internal static partial void Test(this StringBuilder builder, String product)
     {
         if (product == "Awesome Shoes")
         {

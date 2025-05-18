@@ -12,6 +12,7 @@ internal abstract record Syntax
     public sealed record RawText(string Value) : Syntax
     {
         public override bool SuppressTrailingNewline => false;
+        public bool ContainsNewline => Value.IndexOf('\n') != -1;
     }
 
     /// <summary>
@@ -88,9 +89,12 @@ internal abstract record Syntax
     /// </summary>
     /// <param name="Name">name of the template method to call</param>
     /// <param name="Parameters">parameters to pass to the template method</param>
-    public sealed record CallStatement(string Name, string Parameters) : Syntax
+    /// <param name="LeadingWhitespace">leading whitespace to add before the calls to raw or renderable expressions</param>
+    public sealed record CallStatement(string Name, string Parameters, string LeadingWhitespace)
+        : Syntax
     {
         public override bool SuppressTrailingNewline => true;
+        public bool HasLeadingWhitespace => !string.IsNullOrEmpty(LeadingWhitespace);
     }
 
     /// <summary>

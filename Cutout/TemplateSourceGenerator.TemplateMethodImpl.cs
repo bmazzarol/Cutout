@@ -1,24 +1,31 @@
 using System.CodeDom.Compiler;
 using Cutout.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace Cutout;
 
 public sealed partial class TemplateSourceGenerator
 {
-    private static void WriteTemplateMethod(IndentedTextWriter writer, TemplateMethodDetails model)
+    private static void WriteTemplateMethod(
+        IndentedTextWriter writer,
+        TemplateMethodDetails model,
+        bool includeWhitespaceReceiver
+    )
     {
         WriteNamespaceParts(writer, model);
 
         writer.WriteLine();
 
-        writer.Write("public static partial class ");
-        writer.Write(model.ClassName);
+        WriteAccessibility(writer, model.ClassDetails.ClassSymbol.DeclaredAccessibility);
+        writer.Write("static partial class ");
+        writer.Write(model.ClassDetails.Name);
         writer.WriteLine();
 
         writer.WriteLine("{");
         using (writer.Indent())
         {
-            writer.Write("public static partial void ");
+            WriteAccessibility(writer, model.ClassDetails.ClassSymbol.DeclaredAccessibility);
+            writer.Write(includeWhitespaceReceiver ? "static void " : "static partial void ");
             writer.Write(model.MethodDetails.Name);
             writer.Write("(this ");
             for (var index = 0; index < model.MethodDetails.MethodSymbol.Parameters.Length; index++)
@@ -34,19 +41,51 @@ public sealed partial class TemplateSourceGenerator
                 }
             }
 
-            writer.WriteLine(")");
+            writer.WriteLine(includeWhitespaceReceiver ? ", string whitespace)" : ")");
 
             writer.WriteLine("{");
             using (writer.Indent())
             {
-                WriteTemplate(writer, model);
+                WriteTemplate(writer, model, includeWhitespaceReceiver);
             }
             writer.WriteLine("}");
         }
         writer.WriteLine("}");
     }
 
-    private static void WriteTemplate(IndentedTextWriter writer, TemplateMethodDetails model)
+    private static void WriteAccessibility(IndentedTextWriter writer, Accessibility accessibility)
+    {
+        switch (accessibility)
+        {
+            case Accessibility.Public:
+                writer.Write("public ");
+                break;
+            case Accessibility.Internal:
+                writer.Write("internal ");
+                break;
+            case Accessibility.Private:
+                writer.Write("private ");
+                break;
+            case Accessibility.Protected:
+                writer.Write("protected ");
+                break;
+            case Accessibility.ProtectedOrInternal:
+                writer.Write("protected internal ");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(accessibility),
+                    accessibility,
+                    message: "Invalid accessibility"
+                );
+        }
+    }
+
+    private static void WriteTemplate(
+        IndentedTextWriter writer,
+        TemplateMethodDetails model,
+        bool includeWhitespaceReceiver
+    )
     {
         var template = model.AttributeDetails.Template;
 
@@ -57,7 +96,7 @@ public sealed partial class TemplateSourceGenerator
 
         foreach (var syntax in model.AttributeDetails.Syntaxes)
         {
-            writer.WriteSyntax(syntax);
+            writer.WriteSyntax(syntax, includeWhitespaceReceiver);
         }
     }
 
