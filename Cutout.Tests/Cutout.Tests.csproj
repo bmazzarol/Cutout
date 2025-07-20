@@ -21,4 +21,41 @@
         <ProjectReference Include="..\Cutout\Cutout.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="CallStatementTests.cs" />
+      <Compile Remove="ForStatementTests.cs" />
+      <Compile Remove="IfStatementTests.cs" />
+      <Compile Remove="SharedTests.cs" />
+      <Compile Remove="TemplateTests.cs" />
+      <Compile Remove="TemplateParserTests.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="CallStatementTests.Case1a#Test.Test.g.verified.cs" />
+      <None Remove="CallStatementTests.Case1a#Test.Test.wsr.g.verified.cs" />
+      <None Remove="ForStatementTests.Case1a#Test.Test.g.verified.cs" />
+      <None Remove="ForStatementTests.Case2a#Test.Test.g.verified.cs" />
+      <None Remove="ForStatementTests.Case3a#Test.Test.g.verified.cs" />
+      <None Remove="ForStatementTests.Case3a#Test.Test.wsr.g.verified.cs" />
+      <None Remove="ForStatementTests.Case1a#Test.Test.wsr.g.verified.cs" />
+      <None Remove="ForStatementTests.Case2a#Test.Test.wsr.g.verified.cs" />
+      <None Remove="IfStatementTests.Case1a#Test.Test.g.verified.cs" />
+      <None Remove="IfStatementTests.Case2a#Test.Test.g.verified.cs" />
+      <None Remove="IfStatementTests.Case3a#Test.Test.g.verified.cs" />
+      <None Remove="IfStatementTests.Case1a#Test.Test.wsr.g.verified.cs" />
+      <None Remove="IfStatementTests.Case3a#Test.Test.wsr.g.verified.cs" />
+      <None Remove="IfStatementTests.Case2a#Test.Test.wsr.g.verified.cs" />
+      <None Remove="SharedTests.Case1#TemplateAttribute.g.verified.cs" />
+      <None Remove="TemplateTests.Case1a#Test.Test.g.verified.cs" />
+      <None Remove="TemplateTests.Case2a#Test.TestWithParameter.g.verified.cs" />
+      <None Remove="TemplateTests.Case3a#Test.TestWithTwoParameters.g.verified.cs" />
+      <None Remove="TemplateTests.Case4a#Test.TestWithModel.g.verified.cs" />
+      <None Remove="TemplateTests.Case5a#Test.TestWithConstantTemplate.g.verified.cs" />
+      <None Remove="TemplateTests.Case1a#Test.Test.wsr.g.verified.cs" />
+      <None Remove="TemplateTests.Case4a#Test.TestWithModel.wsr.g.verified.cs" />
+      <None Remove="TemplateTests.Case3a#Test.TestWithTwoParameters.wsr.g.verified.cs" />
+      <None Remove="TemplateTests.Case2a#Test.TestWithParameter.wsr.g.verified.cs" />
+      <None Remove="TemplateTests.Case5a#Test.TestWithConstantTemplate.wsr.g.verified.cs" />
+    </ItemGroup>
+
 </Project>

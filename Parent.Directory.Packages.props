@@ -19,7 +19,6 @@
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0"/>
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.11.0"/>
         <PackageVersion Include="Microsoft.CSharp" Version="4.7.0"/>
-        <PackageVersion Include="Scriban" Version="3.2.1"/>
         <PackageVersion Include="System.Text.Json" Version="8.0.5"/>
         <PackageVersion Include="TypeNameFormatter.Sources" Version="1.1.1"/>
         <PackageVersion Include="ValueTaskSupplement" Version="1.1.0" />

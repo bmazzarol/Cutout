@@ -1,6 +1,5 @@
 ﻿using Cutout.Exceptions;
 using Cutout.Parser;
-using Scriban.Parsing;
 
 namespace Cutout.Tests;
 
@@ -10,7 +9,7 @@ public sealed class TemplateParserTests
     public void Case1()
     {
         const string template = "raw string";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -22,7 +21,7 @@ public sealed class TemplateParserTests
     public void Case2()
     {
         const string template = "{{ code }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -34,7 +33,7 @@ public sealed class TemplateParserTests
     public void Case3()
     {
         const string template = "raw {{ code }} string";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         Assert.Collection(
@@ -61,7 +60,7 @@ public sealed class TemplateParserTests
     public void Case4()
     {
         const string template = "{{ if condition }} test {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -76,7 +75,7 @@ public sealed class TemplateParserTests
     public void Case5()
     {
         const string template = "{{ if condition }} test {{ else }} test2 {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         Assert.Collection(
@@ -104,7 +103,7 @@ public sealed class TemplateParserTests
     {
         const string template =
             "{{ if condition1 }} test {{ else if condition2 }} test2 {{ else }} test3 {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         Assert.Collection(
@@ -139,7 +138,7 @@ public sealed class TemplateParserTests
     public void Case7()
     {
         const string template = "{{ if condition1 }} test {{ else if condition2 }} test2 {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         Assert.Collection(
@@ -167,7 +166,7 @@ public sealed class TemplateParserTests
     public void Case8()
     {
         const string template = "{{ if condition1 }} test {{ else if }} test2 {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:36 (CodeExit): else if statement condition not found (value: '}}')",
@@ -180,7 +179,7 @@ public sealed class TemplateParserTests
     {
         const string template =
             "{{ if condition1 }} test {{ else invalid condition }} test2 {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:33 (Identifier): else statement must be followed by if statement (value: 'invalid')",
@@ -192,7 +191,7 @@ public sealed class TemplateParserTests
     public void Case10()
     {
         const string template = "{{ if }} test {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:6 (CodeExit): if statement condition not found (value: '}}')",
@@ -204,7 +203,7 @@ public sealed class TemplateParserTests
     public void Case11()
     {
         const string template = "{{ if condition1 }} test {{ else if condition2 }} test2 ";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:49 (Raw): else or end not found (value: ' test2 ')",
@@ -216,7 +215,7 @@ public sealed class TemplateParserTests
     public void Case12()
     {
         const string template = "{{ if condition1 }}{{ if condition2 }} test {{ end }}{{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -233,7 +232,7 @@ public sealed class TemplateParserTests
     public void Case13()
     {
         const string template = "{{ for condition }} test {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -248,7 +247,7 @@ public sealed class TemplateParserTests
     public void Case14()
     {
         const string template = "{{ for }} test {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:7 (CodeExit): for statement condition not found (value: '}}')",
@@ -260,7 +259,7 @@ public sealed class TemplateParserTests
     public void Case15()
     {
         const string template = "{{ foreach condition }} test {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -277,7 +276,7 @@ public sealed class TemplateParserTests
     public void Case16()
     {
         const string template = "{{ foreach }} test {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:11 (CodeExit): foreach statement condition not found (value: '}}')",
@@ -289,7 +288,7 @@ public sealed class TemplateParserTests
     public void Case17()
     {
         const string template = "{{ while condition }} test {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -306,7 +305,7 @@ public sealed class TemplateParserTests
     public void Case18()
     {
         const string template = "{{ while }} test {{ end }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:9 (CodeExit): while statement condition not found (value: '}}')",
@@ -318,7 +317,7 @@ public sealed class TemplateParserTests
     public void Case19()
     {
         const string template = "{{ continue }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -329,7 +328,7 @@ public sealed class TemplateParserTests
     public void Case20()
     {
         const string template = "{{ break }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -340,7 +339,7 @@ public sealed class TemplateParserTests
     public void Case21()
     {
         const string template = "{{ break invalid }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:9 (Identifier): Expected only keyword 'break' (value: 'invalid')",
@@ -360,7 +359,7 @@ public sealed class TemplateParserTests
             The value is {{i}}
             {{ end }}
             """;
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var whileStatement = Assert.IsType<Syntax.WhileStatement>(Assert.Single(result));
@@ -396,7 +395,7 @@ public sealed class TemplateParserTests
     public void Case23()
     {
         const string template = "{{ return }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -407,7 +406,7 @@ public sealed class TemplateParserTests
     public void Case24()
     {
         const string template = "{{ return invalid }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:10 (Identifier): Expected only keyword 'return' (value: 'invalid')",
@@ -424,7 +423,7 @@ public sealed class TemplateParserTests
             {{continue}}
             {{return}}
             """;
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         Assert.Collection(
@@ -444,7 +443,7 @@ public sealed class TemplateParserTests
     public void Case26()
     {
         const string template = "{{ call method(param1, param2) }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         var item = Assert.Single(result);
@@ -458,7 +457,7 @@ public sealed class TemplateParserTests
     public void Case27()
     {
         const string template = "{{ call method(param1, param2) invalid }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => TemplateParser.Parse(tokens, template));
         Assert.Equal(
             "Parse error at 0:31 (Identifier): Invalid call statement. Expected format: 'MethodName(...)'. (value: 'invalid')",
@@ -471,7 +470,7 @@ public sealed class TemplateParserTests
     {
         const string template =
             "some text \n some other text \n\n       {{ call method(param1, param2) }}";
-        var tokens = new Lexer(template).ToArray();
+        var tokens = Lexer.Tokenize(template);
         var result = TemplateParser.Parse(tokens, template);
 
         Assert.Collection(

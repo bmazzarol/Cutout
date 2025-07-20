@@ -34,7 +34,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Scriban" IncludeAssets="Build"/>
         <PackageReference Include="Microsoft.CSharp"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Parser\TemplateParser*" />
+      <Compile Remove="Renderer\Renderer.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Renderer\" />
     </ItemGroup>
 </Project>

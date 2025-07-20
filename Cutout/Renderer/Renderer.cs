@@ -80,7 +80,7 @@ internal static class Renderer
     )
     {
         writer.Write("builder.Append(@\"");
-        writer.Write(rawText.Value);
+        // writer.Write(rawText.Value);
         writer.WriteLine("\");");
 
         if (includeWhitespaceReceiver && rawText.ContainsNewline)

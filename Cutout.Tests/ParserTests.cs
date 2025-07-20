@@ -1,0 +1,462 @@
+﻿using Cutout.Exceptions;
+using Cutout.Extensions;
+
+namespace Cutout.Tests;
+
+public class ParserTests
+{
+    [Fact(DisplayName = "A raw string can be parsed")]
+    public void Case1()
+    {
+        const string template = "raw string";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var single = Assert.Single(result);
+        var raw = Assert.IsType<Syntax.RawText>(single);
+        Assert.Collection(
+            raw.Value,
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "raw");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "string");
+            }
+        );
+    }
+
+    [Fact(DisplayName = "A renderable code block can be parsed")]
+    public void Case2()
+    {
+        const string template = "{{ code }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        var renderableExpression = Assert.IsType<Syntax.RenderableExpression>(item);
+        Assert.Collection(
+            renderableExpression.Value,
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "code");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            }
+        );
+    }
+
+    [Fact(DisplayName = "Raw and renderable code blocks can be parsed")]
+    public void Case3()
+    {
+        const string template = "raw {{ code }} string";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        Assert.Collection(
+            result,
+            item =>
+            {
+                var rawText = Assert.IsType<Syntax.RawText>(item);
+                Assert.Collection(
+                    rawText.Value,
+                    token =>
+                    {
+                        Assert.Equal(TokenType.Raw, token.Type);
+                        Assert.Equal(token.ToSpan(template), "raw");
+                    },
+                    token =>
+                    {
+                        Assert.Equal(TokenType.Whitespace, token.Type);
+                        Assert.Equal(token.ToSpan(template), " ");
+                    }
+                );
+            },
+            item =>
+            {
+                var renderableExpression = Assert.IsType<Syntax.RenderableExpression>(item);
+                Assert.Collection(
+                    renderableExpression.Value,
+                    token =>
+                    {
+                        Assert.Equal(TokenType.Whitespace, token.Type);
+                        Assert.Equal(token.ToSpan(template), " ");
+                    },
+                    token =>
+                    {
+                        Assert.Equal(TokenType.Raw, token.Type);
+                        Assert.Equal(token.ToSpan(template), "code");
+                    },
+                    token =>
+                    {
+                        Assert.Equal(TokenType.Whitespace, token.Type);
+                        Assert.Equal(token.ToSpan(template), " ");
+                    }
+                );
+            },
+            item =>
+            {
+                var rawText = Assert.IsType<Syntax.RawText>(item);
+                Assert.Collection(
+                    rawText.Value,
+                    token =>
+                    {
+                        Assert.Equal(TokenType.Whitespace, token.Type);
+                        Assert.Equal(token.ToSpan(template), " ");
+                    },
+                    token =>
+                    {
+                        Assert.Equal(TokenType.Raw, token.Type);
+                        Assert.Equal(token.ToSpan(template), "string");
+                    }
+                );
+            }
+        );
+    }
+
+    [Fact(DisplayName = "An empty template can be parsed")]
+    public void Case4()
+    {
+        const string template = "";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        Assert.Empty(result);
+    }
+
+    [Fact(DisplayName = "Code blocks must have balanced braces")]
+    public void Case5()
+    {
+        const string template = "{{ code";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal("Parse error at end of file: Code exit token not found", exception.Message);
+        Assert.Equal(string.Empty, exception.Token.ToSpan(template).ToString());
+    }
+
+    [Fact(DisplayName = "Code blocks cannot be empty")]
+    public void Case6()
+    {
+        const string template = "{{ }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:3 (Whitespace): Code block is empty (value: ' ')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Whitespace, exception.Token.Type);
+        Assert.Equal(" ", exception.Value);
+    }
+
+    [Fact(DisplayName = "Nested code blocks are not allowed")]
+    public void Case7()
+    {
+        const string template = "{{ {{ nested }} }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (CodeEnter): Nested code blocks are not allowed (value: '{{')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.CodeEnter, exception.Token.Type);
+        Assert.Equal("{{", exception.Value);
+    }
+
+    [Fact(DisplayName = "A break statement can be parsed")]
+    public void Case8()
+    {
+        const string template = "{{ break }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        Assert.IsType<Syntax.BreakStatement>(item);
+    }
+
+    [Fact(DisplayName = "A continue statement can be parsed")]
+    public void Case9()
+    {
+        const string template = "{{ continue }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        Assert.IsType<Syntax.ContinueStatement>(item);
+    }
+
+    [Fact(DisplayName = "A return statement can be parsed")]
+    public void Case10()
+    {
+        const string template = "{{ return }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        Assert.IsType<Syntax.ReturnStatement>(item);
+    }
+
+    [Fact(DisplayName = "A var statement can be parsed")]
+    public void Case11()
+    {
+        const string template = "{{ var x = 42 }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        var varDeclaration = Assert.IsType<Syntax.VarStatement>(item);
+        Assert.Collection(
+            varDeclaration.Assignment,
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "x");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "=");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "42");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            }
+        );
+    }
+
+    [Fact(DisplayName = "A var statement without an expression throws an error")]
+    public void Case12()
+    {
+        const string template = "{{ var }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): Variable declaration requires an expression (value: 'var')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("var", exception.Value);
+    }
+
+    [Fact(DisplayName = "A call statement can be parsed")]
+    public void Case13()
+    {
+        const string template = "{{ call function(arg1, arg2) }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        var callStatement = Assert.IsType<Syntax.CallStatement>(item);
+        Assert.Equal("function", callStatement.Name);
+        Assert.Collection(
+            callStatement.Parameters,
+            param =>
+            {
+                Assert.Equal("arg1", param);
+            },
+            param =>
+            {
+                Assert.Equal("arg2", param);
+            }
+        );
+    }
+
+    [Fact(DisplayName = "A call statement function part throws an error")]
+    public void Case14()
+    {
+        const string template = "{{ call }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): Call statement requires parameters (value: 'call')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("call", exception.Value);
+    }
+
+    [Fact(DisplayName = "A call statement without parentheses throws an error")]
+    public void Case15()
+    {
+        const string template = "{{ call function }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): Call statement requires a function name and () with optional parameters (value: 'call')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("call", exception.Value);
+    }
+
+    [Fact(DisplayName = "A call statement with only parentheses throws an error")]
+    public void Case16()
+    {
+        const string template = "{{ call () }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): Call statement requires a function name and () with optional parameters (value: 'call')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("call", exception.Value);
+    }
+
+    [Fact(DisplayName = "A while statement can be parsed")]
+    public void Case17()
+    {
+        const string template = "{{ while condition }} some code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        var whileStatement = Assert.IsType<Syntax.WhileStatement>(item);
+        Assert.Collection(
+            whileStatement.Condition,
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "condition");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            }
+        );
+
+        var expression = Assert.Single(whileStatement.Expressions);
+        var rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Collection(
+            rawText.Value,
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "some");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal(token.ToSpan(template), "code");
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(token.ToSpan(template), " ");
+            }
+        );
+    }
+
+    [Fact(DisplayName = "A while statement without a condition throws an error")]
+    public void Case18()
+    {
+        const string template = "{{ while }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): while statement requires a condition (value: 'while')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("while", exception.Value);
+    }
+
+    [Fact(DisplayName = "A while statement without an end token throws an error")]
+    public void Case19()
+    {
+        const string template = "{{ while condition }} some code";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at end of file: Unexpected end of file, expected a {{ end }} block",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Eof, exception.Token.Type);
+        Assert.Equal(string.Empty, exception.Value);
+    }
+
+    [Fact(DisplayName = "A for statement can be parsed")]
+    public void Case20()
+    {
+        const string template = "{{ for i = 0; i < items.Length; i++ }} some code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        var forStatement = Assert.IsType<Syntax.ForStatement>(item);
+        Assert.Equal(" i = 0; i < items.Length; i++ ", forStatement.Condition.ToSpan(template));
+
+        var expression = Assert.Single(forStatement.Expressions);
+        var rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" some code ", rawText.Value.ToSpan(template));
+    }
+
+    [Fact(DisplayName = "A foreach statement can be parsed")]
+    public void Case21()
+    {
+        const string template = "{{ foreach item in items }} some code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        var foreachStatement = Assert.IsType<Syntax.ForeachStatement>(item);
+        Assert.Equal(" item in items ", foreachStatement.Condition.ToSpan(template));
+
+        var expression = Assert.Single(foreachStatement.Expressions);
+        var rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" some code ", rawText.Value.ToSpan(template));
+    }
+}
