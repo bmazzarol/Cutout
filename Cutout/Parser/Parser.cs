@@ -9,6 +9,7 @@ internal static class Parser
     private static readonly char[] Call = ['c', 'a', 'l', 'l'];
     private static readonly char[] If = ['i', 'f'];
     private static readonly char[] Else = ['e', 'l', 's', 'e'];
+    private static readonly char[] ElseIf = ['e', 'l', 's', 'e', 'i', 'f'];
     private static readonly char[] End = ['e', 'n', 'd'];
     private static readonly char[] For = ['f', 'o', 'r'];
     private static readonly char[] Foreach = ['f', 'o', 'r', 'e', 'a', 'c', 'h'];
@@ -20,14 +21,21 @@ internal static class Parser
     internal static SyntaxList Parse(TokenList tokens, in ReadOnlySpan<char> template)
     {
         var index = 0;
-        return ParseInternal(tokens, in template, ref index);
+        return ParseInternal(tokens, in template, ref index, BreakOn.Eof);
+    }
+
+    private enum BreakOn
+    {
+        Eof,
+        End,
+        Else,
     }
 
     private static SyntaxList ParseInternal(
         TokenList tokens,
         in ReadOnlySpan<char> template,
         ref int index,
-        params char[][] breakOnAny
+        in BreakOn breakOn
     )
     {
         var syntaxList = new SyntaxList();
@@ -39,14 +47,17 @@ internal static class Parser
             switch (token.Type)
             {
                 case TokenType.Eof:
-                    if (breakOnAny.Length > 0)
+                    if (breakOn != BreakOn.Eof)
                     {
                         throw new ParseException(
                             token,
                             token.ToSpan(in template).ToString(),
-                            breakOnAny.Length == 1
-                                ? $"Unexpected end of file, expected a {{{{ {new string(breakOnAny[0])} }}}} block"
-                                : $"Unexpected end of file, expected one of {{{{ {string.Join(", ", breakOnAny.Select(b => new string(b)))} }}}} blocks"
+                            breakOn switch
+                            {
+                                BreakOn.Else =>
+                                    "Unexpected end of file, expected a {{ else }} {{ else if }} or {{ end }} block",
+                                _ => "Unexpected end of file, expected a {{ end }} block",
+                            }
                         );
                     }
 
@@ -66,16 +77,27 @@ internal static class Parser
 
                     var identifier = tokens[identifierIndex].ToSpan(in template);
 
-                    if (isJustIdentifier && breakOnAny.Length > 0)
+                    if (identifier.SequenceEqual(End))
                     {
-                        for (var i = 0; i < breakOnAny.Length; i++)
+                        if (!isJustIdentifier)
                         {
-                            var breakOn = breakOnAny[i];
-                            if (identifier.SequenceEqual(breakOn))
-                            {
-                                return syntaxList;
-                            }
+                            throw new ParseException(
+                                tokens[identifierIndex],
+                                identifier.ToString(),
+                                "{{ end }} statement should only contain the identifier"
+                            );
                         }
+
+                        if (breakOn == BreakOn.Eof)
+                        {
+                            throw new ParseException(
+                                tokens[identifierIndex],
+                                identifier.ToString(),
+                                "{{ end }} found but not expected"
+                            );
+                        }
+
+                        return syntaxList;
                     }
 
                     if (isJustIdentifier && identifier.SequenceEqual(Break))
@@ -92,12 +114,12 @@ internal static class Parser
                     }
                     else if (identifier.SequenceEqual(Var))
                     {
-                        var syntax = ParseVarStatement(ref identifier);
+                        var syntax = ParseVarStatement(in index, ref identifier);
                         syntaxList.Add(syntax);
                     }
                     else if (identifier.SequenceEqual(Call))
                     {
-                        var syntax = ParseCallStatement(ref identifier, in template);
+                        var syntax = ParseCallStatement(in index, ref identifier, in template);
                         syntaxList.Add(syntax);
                     }
                     else if (identifier.SequenceEqual(While))
@@ -106,6 +128,7 @@ internal static class Parser
                             ref identifier,
                             in template,
                             ref index,
+                            BreakOn.End,
                             out var condition,
                             out var expressions
                         );
@@ -118,6 +141,7 @@ internal static class Parser
                             ref identifier,
                             in template,
                             ref index,
+                            BreakOn.End,
                             out var condition,
                             out var expressions
                         );
@@ -130,10 +154,117 @@ internal static class Parser
                             ref identifier,
                             in template,
                             ref index,
+                            BreakOn.End,
                             out var condition,
                             out var expressions
                         );
                         var syntax = new Syntax.ForeachStatement(condition, expressions);
+                        syntaxList.Add(syntax);
+                    }
+                    else if (identifier.SequenceEqual(If))
+                    {
+                        ParseConditionalStatement(
+                            ref identifier,
+                            in template,
+                            ref index,
+                            BreakOn.Else,
+                            out var condition,
+                            out var expressions
+                        );
+                        var syntax = new Syntax.IfStatement(condition, expressions);
+                        syntaxList.Add(syntax);
+                    }
+                    else if (identifier.SequenceEqual(ElseIf))
+                    {
+                        var lastSyntax =
+                            syntaxList.Count > 0 ? syntaxList[syntaxList.Count - 1] : null;
+                        if (
+                            breakOn == BreakOn.Eof
+                            && lastSyntax is not Syntax.IfStatement
+                            && lastSyntax is not Syntax.ElseIfStatement
+                        )
+                        {
+                            throw new ParseException(
+                                tokens[identifierIndex],
+                                identifier.ToString(),
+                                "{{ elseif }} statement requires a preceding {{ if }} or {{ elseif }} statement"
+                            );
+                        }
+
+                        switch (breakOn)
+                        {
+                            case BreakOn.End:
+                                throw new ParseException(
+                                    tokens[identifierIndex],
+                                    identifier.ToString(),
+                                    "Unexpected {{ elseif }} block, expected a {{ end }} block"
+                                );
+                            case BreakOn.Else:
+                            {
+                                RewindToToken(ref index, TokenType.CodeEnter);
+                                return syntaxList;
+                            }
+                        }
+
+                        ParseConditionalStatement(
+                            ref identifier,
+                            in template,
+                            ref index,
+                            BreakOn.Else,
+                            out var condition,
+                            out var expressions
+                        );
+                        var syntax = new Syntax.ElseIfStatement(condition, expressions);
+                        syntaxList.Add(syntax);
+                    }
+                    else if (identifier.SequenceEqual(Else))
+                    {
+                        var lastSyntax =
+                            syntaxList.Count > 0 ? syntaxList[syntaxList.Count - 1] : null;
+                        if (
+                            breakOn == BreakOn.Eof
+                            && lastSyntax is not Syntax.IfStatement
+                            && lastSyntax is not Syntax.ElseIfStatement
+                        )
+                        {
+                            throw new ParseException(
+                                tokens[identifierIndex],
+                                identifier.ToString(),
+                                "{{ else }} statement requires a preceding {{ if }} or {{ elseif }} statement"
+                            );
+                        }
+
+                        switch (breakOn)
+                        {
+                            case BreakOn.End:
+                                throw new ParseException(
+                                    tokens[identifierIndex],
+                                    identifier.ToString(),
+                                    "Unexpected {{ else }} block, expected a {{ end }} block"
+                                );
+                            case BreakOn.Else:
+                            {
+                                RewindToToken(ref index, TokenType.CodeEnter);
+                                return syntaxList;
+                            }
+                        }
+
+                        if (!isJustIdentifier)
+                        {
+                            throw new ParseException(
+                                tokens[identifierIndex],
+                                identifier.ToString(),
+                                "{{ else }} statement should only contain the identifier"
+                            );
+                        }
+
+                        var expressions = ParseInternal(
+                            tokens,
+                            in template,
+                            ref index,
+                            BreakOn.End
+                        );
+                        var syntax = new Syntax.ElseStatement(expressions);
                         syntaxList.Add(syntax);
                     }
                     else
@@ -143,26 +274,35 @@ internal static class Parser
                     }
                     break;
 
-                    TokenList RemainingTokens() =>
-                        tokens.GetRange(identifierIndex + 1, count - identifierIndex);
+                    TokenList RemainingTokens(in int index)
+                    {
+                        var remainingCount = index - 2 - identifierIndex;
+                        return remainingCount > 0
+                            ? tokens.GetRange(identifierIndex + 1, remainingCount)
+                            : [];
+                    }
 
-                    Syntax.VarStatement ParseVarStatement(ref ReadOnlySpan<char> identifier)
+                    Syntax.VarStatement ParseVarStatement(
+                        in int index,
+                        ref ReadOnlySpan<char> identifier
+                    )
                     {
                         if (isJustIdentifier)
                         {
                             throw new ParseException(
                                 tokens[identifierIndex],
                                 identifier.ToString(),
-                                "Variable declaration requires an expression"
+                                "{{ var }} declaration requires an assignment expression"
                             );
                         }
 
-                        var assignmentTokens = RemainingTokens();
+                        var assignmentTokens = RemainingTokens(in index);
                         var syntax = new Syntax.VarStatement(assignmentTokens);
                         return syntax;
                     }
 
                     Syntax.CallStatement ParseCallStatement(
+                        in int index,
                         ref ReadOnlySpan<char> identifier,
                         in ReadOnlySpan<char> template
                     )
@@ -172,11 +312,11 @@ internal static class Parser
                             throw new ParseException(
                                 tokens[identifierIndex],
                                 identifier.ToString(),
-                                "Call statement requires parameters"
+                                "{{ call }} statement requires parameters"
                             );
                         }
 
-                        var callTokens = RemainingTokens();
+                        var callTokens = RemainingTokens(in index);
                         var text = callTokens.ToSpan(in template).Trim().ToString();
                         var callParts = text.Split(
                             ['(', ')'],
@@ -188,7 +328,7 @@ internal static class Parser
                             throw new ParseException(
                                 tokens[identifierIndex],
                                 identifier.ToString(),
-                                "Call statement requires a function name and () with optional parameters"
+                                "{{ call }} statement requires a function name and () with optional parameters"
                             );
                         }
 
@@ -202,6 +342,7 @@ internal static class Parser
                         ref ReadOnlySpan<char> identifier,
                         in ReadOnlySpan<char> template,
                         ref int index,
+                        in BreakOn breakOn,
                         out TokenList condition,
                         out SyntaxList expressions
                     )
@@ -211,17 +352,12 @@ internal static class Parser
                             throw new ParseException(
                                 tokens[identifierIndex],
                                 identifier.ToString(),
-                                $"{identifier.ToString()} statement requires a condition"
+                                $"{{{{ {identifier.ToString()} }}}} statement requires a condition"
                             );
                         }
 
-                        condition = RemainingTokens();
-                        expressions = ParseInternal(
-                            tokens,
-                            in template,
-                            ref index,
-                            breakOnAny: End
-                        );
+                        condition = RemainingTokens(in index);
+                        expressions = ParseInternal(tokens, in template, ref index, breakOn);
                     }
                 }
                 default:
@@ -233,6 +369,14 @@ internal static class Parser
             }
         }
         return syntaxList;
+
+        void RewindToToken(ref int index, in TokenType type)
+        {
+            while (index > -1 && tokens[index].Type != type)
+            {
+                index--;
+            }
+        }
     }
 
     private static void ParseCodeBlock(

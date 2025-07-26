@@ -268,7 +268,7 @@ public class ParserTests
         var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
         Assert.Equal(
-            "Parse error at 1:4 (Raw): Variable declaration requires an expression (value: 'var')",
+            "Parse error at 1:4 (Raw): {{ var }} declaration requires an assignment expression (value: 'var')",
             exception.Message
         );
         Assert.Equal(TokenType.Raw, exception.Token.Type);
@@ -305,7 +305,7 @@ public class ParserTests
         var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
         Assert.Equal(
-            "Parse error at 1:4 (Raw): Call statement requires parameters (value: 'call')",
+            "Parse error at 1:4 (Raw): {{ call }} statement requires parameters (value: 'call')",
             exception.Message
         );
         Assert.Equal(TokenType.Raw, exception.Token.Type);
@@ -319,7 +319,7 @@ public class ParserTests
         var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
         Assert.Equal(
-            "Parse error at 1:4 (Raw): Call statement requires a function name and () with optional parameters (value: 'call')",
+            "Parse error at 1:4 (Raw): {{ call }} statement requires a function name and () with optional parameters (value: 'call')",
             exception.Message
         );
         Assert.Equal(TokenType.Raw, exception.Token.Type);
@@ -333,7 +333,7 @@ public class ParserTests
         var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
         Assert.Equal(
-            "Parse error at 1:4 (Raw): Call statement requires a function name and () with optional parameters (value: 'call')",
+            "Parse error at 1:4 (Raw): {{ call }} statement requires a function name and () with optional parameters (value: 'call')",
             exception.Message
         );
         Assert.Equal(TokenType.Raw, exception.Token.Type);
@@ -407,7 +407,7 @@ public class ParserTests
         var tokens = Lexer.Tokenize(template);
         var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
         Assert.Equal(
-            "Parse error at 1:4 (Raw): while statement requires a condition (value: 'while')",
+            "Parse error at 1:4 (Raw): {{ while }} statement requires a condition (value: 'while')",
             exception.Message
         );
         Assert.Equal(TokenType.Raw, exception.Token.Type);
@@ -458,5 +458,373 @@ public class ParserTests
         var expression = Assert.Single(foreachStatement.Expressions);
         var rawText = Assert.IsType<Syntax.RawText>(expression);
         Assert.Equal(" some code ", rawText.Value.ToSpan(template));
+    }
+
+    [Fact(DisplayName = "An if statement can be parsed")]
+    public void Case22()
+    {
+        const string template = "{{ if condition }} some code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        var item = Assert.Single(result);
+        var ifStatement = Assert.IsType<Syntax.IfStatement>(item);
+        Assert.Equal(" condition ", ifStatement.Condition.ToSpan(template));
+
+        var expression = Assert.Single(ifStatement.Expressions);
+        var rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" some code ", rawText.Value.ToSpan(template));
+    }
+
+    [Fact(DisplayName = "An if statement without a condition throws an error")]
+    public void Case23()
+    {
+        const string template = "{{ if }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): {{ if }} statement requires a condition (value: 'if')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("if", exception.Value);
+    }
+
+    [Fact(DisplayName = "An if statement without an end token throws an error")]
+    public void Case24()
+    {
+        const string template = "{{ if condition }} some code";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at end of file: Unexpected end of file, expected a {{ else }} {{ else if }} or {{ end }} block",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Eof, exception.Token.Type);
+        Assert.Equal(string.Empty, exception.Value);
+    }
+
+    [Fact(DisplayName = "An else without an if statement throws an error")]
+    public void Case25()
+    {
+        const string template = "{{ else }} some code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): {{ else }} statement requires a preceding {{ if }} or {{ elseif }} statement (value: 'else')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("else", exception.Value);
+    }
+
+    [Fact(DisplayName = "An else if without an if statement throws an error")]
+    public void Case26()
+    {
+        const string template = "{{ else if condition }} some code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): {{ else }} statement requires a preceding {{ if }} or {{ elseif }} statement (value: 'else')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("else", exception.Value);
+    }
+
+    [Fact(DisplayName = "An else statement can be parsed")]
+    public void Case27()
+    {
+        const string template = "{{ if condition }} some code {{ else }} other code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        Assert.Equal(2, result.Count);
+        var ifStatement = Assert.IsType<Syntax.IfStatement>(result[0]);
+        Assert.Equal(" condition ", ifStatement.Condition.ToSpan(template));
+
+        var expression = Assert.Single(ifStatement.Expressions);
+        var rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" some code ", rawText.Value.ToSpan(template));
+
+        var elseStatement = Assert.IsType<Syntax.ElseStatement>(result[1]);
+        expression = Assert.Single(elseStatement.Expressions);
+        var elseRawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" other code ", elseRawText.Value.ToSpan(template));
+    }
+
+    [Fact(DisplayName = "An else after an else statement throws an error")]
+    public void Case28()
+    {
+        const string template =
+            "{{ if condition }} some code {{ else }} other code {{ else }} more code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:55 (Raw): Unexpected {{ else }} block, expected a {{ end }} block (value: 'else')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("else", exception.Value);
+    }
+
+    [Fact(DisplayName = "An else if can be parsed")]
+    public void Case29()
+    {
+        const string template =
+            "{{ if condition }} some code {{ elseif otherCondition }} other code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        Assert.Equal(2, result.Count);
+        var ifStatement = Assert.IsType<Syntax.IfStatement>(result[0]);
+        Assert.Equal(" condition ", ifStatement.Condition.ToSpan(template));
+
+        var expression = Assert.Single(ifStatement.Expressions);
+        var rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" some code ", rawText.Value.ToSpan(template));
+
+        var elseIfStatement = Assert.IsType<Syntax.ElseIfStatement>(result[1]);
+        Assert.Equal(" otherCondition ", elseIfStatement.Condition.ToSpan(template));
+
+        expression = Assert.Single(elseIfStatement.Expressions);
+        var elseRawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" other code ", elseRawText.Value.ToSpan(template));
+    }
+
+    [Fact(DisplayName = "An else if after an else statement throws an error")]
+    public void Case30()
+    {
+        const string template =
+            "{{ if condition }} some code {{ else }} other code {{ elseif anotherCondition }} more code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:55 (Raw): Unexpected {{ elseif }} block, expected a {{ end }} block (value: 'elseif')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("elseif", exception.Value);
+    }
+
+    [Fact(DisplayName = "An else after and else statement throws an error")]
+    public void Case31()
+    {
+        const string template =
+            "{{ if condition }} some code {{ else }} other code {{ else }} final code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:55 (Raw): Unexpected {{ else }} block, expected a {{ end }} block (value: 'else')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("else", exception.Value);
+    }
+
+    [Fact(DisplayName = "A if/else if/else statement can be parsed")]
+    public void Case32()
+    {
+        const string template =
+            "{{ if condition }} some code {{ elseif otherCondition }} other code {{ else }} final code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        Assert.Equal(3, result.Count);
+
+        var ifStatement = Assert.IsType<Syntax.IfStatement>(result[0]);
+        Assert.Equal(" condition ", ifStatement.Condition.ToSpan(template));
+        var expression = Assert.Single(ifStatement.Expressions);
+        var rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" some code ", rawText.Value.ToSpan(template));
+
+        var elseIfStatement = Assert.IsType<Syntax.ElseIfStatement>(result[1]);
+        Assert.Equal(" otherCondition ", elseIfStatement.Condition.ToSpan(template));
+        expression = Assert.Single(elseIfStatement.Expressions);
+        rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" other code ", rawText.Value.ToSpan(template));
+
+        var elseStatement = Assert.IsType<Syntax.ElseStatement>(result[2]);
+        expression = Assert.Single(elseStatement.Expressions);
+        rawText = Assert.IsType<Syntax.RawText>(expression);
+        Assert.Equal(" final code ", rawText.Value.ToSpan(template));
+    }
+
+    [Fact(DisplayName = "A end statement without a block throws an error")]
+    public void Case33()
+    {
+        const string template = "{{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): {{ end }} found but not expected (value: 'end')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("end", exception.Value);
+    }
+
+    [Fact(DisplayName = "A end statement with extra tokens throws an error")]
+    public void Case34()
+    {
+        const string template = "{{ end extra }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): {{ end }} statement should only contain the identifier (value: 'end')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("end", exception.Value);
+    }
+
+    [Fact(DisplayName = "A elseif without a preceding if statement throws an error")]
+    public void Case35()
+    {
+        const string template = "{{ elseif condition }} some code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:4 (Raw): {{ elseif }} statement requires a preceding {{ if }} or {{ elseif }} statement (value: 'elseif')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("elseif", exception.Value);
+    }
+
+    [Fact(DisplayName = "A else statement with a condition throws an error")]
+    public void Case36()
+    {
+        const string template = "{{ if test }} something {{ else condition }} some code {{ end }}";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:28 (Raw): {{ else }} statement should only contain the identifier (value: 'else')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("else", exception.Value);
+    }
+
+    [Fact(DisplayName = "A if statement can be nested inside an if statement")]
+    public void Case37()
+    {
+        const string template =
+            "{{ if condition1 }} some code {{ if condition2 }} nested code {{ end }}{{ end }} some more code";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        Assert.Equal(2, result.Count);
+        var ifStatement = Assert.IsType<Syntax.IfStatement>(result[0]);
+        Assert.Equal(" condition1 ", ifStatement.Condition.ToSpan(template));
+
+        Assert.Equal(2, ifStatement.Expressions.Count);
+        Assert.Collection(
+            ifStatement.Expressions,
+            expression =>
+            {
+                var rawText = Assert.IsType<Syntax.RawText>(expression);
+                Assert.Equal(" some code ", rawText.Value.ToSpan(template));
+            },
+            expression =>
+            {
+                var nestedIfStatement = Assert.IsType<Syntax.IfStatement>(expression);
+                Assert.Equal(" condition2 ", nestedIfStatement.Condition.ToSpan(template));
+                Assert.Single(nestedIfStatement.Expressions);
+                var nestedRawText = Assert.IsType<Syntax.RawText>(nestedIfStatement.Expressions[0]);
+                Assert.Equal(" nested code ", nestedRawText.Value.ToSpan(template));
+            }
+        );
+
+        var rawText = Assert.IsType<Syntax.RawText>(result[1]);
+        Assert.Equal(" some more code", rawText.Value.ToSpan(template));
+    }
+
+    [Fact(DisplayName = "A if else statement can be nested inside an if else statement")]
+    public void Case38()
+    {
+        const string template = """
+            {{ if condition1 }} 
+                nested
+                {{ if condition2 }} 
+                    test 
+                {{ else }} 
+                    other 
+                {{ end }} 
+                code 
+            {{ else }} 
+                final 
+                {{ if test }} 
+                    test 
+                {{ else }} 
+                    other 
+                {{ end }} 
+                code 
+            {{ end }}
+            """;
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+
+        Assert.Equal(2, result.Count);
+        var ifStatement = Assert.IsType<Syntax.IfStatement>(result[0]);
+        Assert.Equal(" condition1 ", ifStatement.Condition.ToSpan(template));
+
+        Assert.Equal(2, ifStatement.Expressions.Count);
+        Assert.Collection(
+            ifStatement.Expressions,
+            expression =>
+            {
+                var rawText = Assert.IsType<Syntax.RawText>(expression);
+                Assert.Equal(" nested ", rawText.Value.ToSpan(template));
+            },
+            expression =>
+            {
+                var nestedIfStatement = Assert.IsType<Syntax.IfStatement>(expression);
+                Assert.Equal(" test ", nestedIfStatement.Condition.ToSpan(template));
+                Assert.Equal(2, nestedIfStatement.Expressions.Count);
+                Assert.Collection(
+                    nestedIfStatement.Expressions,
+                    nestedExpression =>
+                    {
+                        var nestedRawText = Assert.IsType<Syntax.RawText>(nestedExpression);
+                        Assert.Equal(" test ", nestedRawText.Value.ToSpan(template));
+                    },
+                    nestedExpression =>
+                    {
+                        var elseRawText = Assert.IsType<Syntax.RawText>(nestedExpression);
+                        Assert.Equal(" other ", elseRawText.Value.ToSpan(template));
+                    }
+                );
+            }
+        );
+        var elseStatement = Assert.IsType<Syntax.ElseStatement>(result[1]);
+        Assert.Equal(2, elseStatement.Expressions.Count);
+        Assert.Collection(
+            elseStatement.Expressions,
+            expression =>
+            {
+                var rawText = Assert.IsType<Syntax.RawText>(expression);
+                Assert.Equal(" final ", rawText.Value.ToSpan(template));
+            },
+            expression =>
+            {
+                var nestedIfStatement = Assert.IsType<Syntax.IfStatement>(expression);
+                Assert.Equal(" test ", nestedIfStatement.Condition.ToSpan(template));
+                Assert.Equal(2, nestedIfStatement.Expressions.Count);
+                Assert.Collection(
+                    nestedIfStatement.Expressions,
+                    nestedExpression =>
+                    {
+                        var nestedRawText = Assert.IsType<Syntax.RawText>(nestedExpression);
+                        Assert.Equal(" test ", nestedRawText.Value.ToSpan(template));
+                    },
+                    nestedExpression =>
+                    {
+                        var elseRawText = Assert.IsType<Syntax.RawText>(nestedExpression);
+                        Assert.Equal(" other ", elseRawText.Value.ToSpan(template));
+                    }
+                );
+            }
+        );
     }
 }
