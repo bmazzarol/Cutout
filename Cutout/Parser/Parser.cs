@@ -15,9 +15,21 @@ internal static partial class Parser
     private static readonly char[] Continue = ['c', 'o', 'n', 't', 'i', 'n', 'u', 'e'];
     private static readonly char[] Return = ['r', 'e', 't', 'u', 'r', 'n'];
 
+    [ThreadStatic]
+    private static Context? _threadContext;
+
     internal static SyntaxList Parse(TokenList tokens, string template)
     {
-        var context = new Context(tokens, template);
+        var context = _threadContext;
+        if (context == null)
+        {
+            context = new Context(tokens, template);
+            _threadContext = context;
+        }
+        else
+        {
+            context.Reset(tokens, template);
+        }
         return ParseInternal(context, BreakOn.Eof, out _);
     }
 

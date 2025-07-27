@@ -8,8 +8,8 @@ internal static partial class Parser
 {
     private sealed class Context : IEnumerator<Token>
     {
-        public TokenList Tokens { get; }
-        public string Template { get; }
+        public TokenList Tokens { get; private set; }
+        public string Template { get; private set; }
         public int Index { get; set; }
 
         public Context(TokenList tokens, string template)
@@ -55,6 +55,13 @@ internal static partial class Parser
         public void Dispose()
         {
             Reset();
+        }
+
+        public void Reset(TokenList tokens, string template)
+        {
+            Tokens = tokens;
+            Template = template;
+            Index = -1;
         }
     }
 }
