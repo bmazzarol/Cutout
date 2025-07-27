@@ -1,8 +1,8 @@
-﻿namespace Cutout.Extensions;
+﻿namespace Cutout;
 
 internal static class TokenListExtensions
 {
-    internal static ReadOnlySpan<char> ToSpan(this TokenList list, in ReadOnlySpan<char> template)
+    internal static ReadOnlySpan<char> ToSpan(this TokenList list, string template)
     {
         if (list.Count == 0)
         {
@@ -11,6 +11,6 @@ internal static class TokenListExtensions
 
         var start = list[0];
         var end = list[list.Count - 1];
-        return start.ToSpan(in template, end);
+        return start.ToSpan(template, end);
     }
 }

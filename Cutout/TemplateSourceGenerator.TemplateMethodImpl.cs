@@ -1,5 +1,4 @@
 using System.CodeDom.Compiler;
-using Cutout.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace Cutout;

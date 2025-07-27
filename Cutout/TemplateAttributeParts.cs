@@ -1,5 +1,4 @@
-﻿using Cutout.Extensions;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Cutout;
 

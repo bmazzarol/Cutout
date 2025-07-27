@@ -16,8 +16,12 @@ internal abstract record Syntax
         IReadOnlyList<Syntax> Expressions
     ) : WrappingExpressionsStatement(Expressions);
 
-    internal sealed record IfStatement(TokenList Condition, IReadOnlyList<Syntax> Expressions)
-        : ConditionalStatement(Condition, Expressions);
+    internal sealed record IfStatement(
+        TokenList Condition,
+        IReadOnlyList<Syntax> Expressions,
+        IReadOnlyList<ElseIfStatement>? ElseIfs = null,
+        ElseStatement? Else = null
+    ) : ConditionalStatement(Condition, Expressions);
 
     internal sealed record ElseIfStatement(TokenList Condition, IReadOnlyList<Syntax> Expressions)
         : ConditionalStatement(Condition, Expressions);

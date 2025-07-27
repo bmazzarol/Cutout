@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace Cutout.Exceptions;
+﻿namespace Cutout.Exceptions;
 
 internal sealed class ParseException : Exception
 {

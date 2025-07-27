@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using Cutout.Exceptions;
 
 namespace Cutout;
 
@@ -56,7 +57,7 @@ internal readonly record struct Token(CharPosition Start, CharPosition End, Toke
         return $"{Type}({Start}:{End})";
     }
 
-    public ReadOnlySpan<char> ToSpan(in ReadOnlySpan<char> template, Token? end = null)
+    public ReadOnlySpan<char> ToSpan(string template, Token? end = null)
     {
         if (Type == TokenType.Eof)
         {
@@ -64,9 +65,13 @@ internal readonly record struct Token(CharPosition Start, CharPosition End, Toke
         }
 
         var endToken = end ?? this;
-        return template.Slice(
-            Start.Offset,
-            length: Math.Max(endToken.End.Offset - Start.Offset + 1, 0)
-        );
+        return template
+            .AsSpan()
+            .Slice(Start.Offset, length: Math.Max(endToken.End.Offset - Start.Offset + 1, 0));
+    }
+
+    internal ParseException Failure(string template, string reason)
+    {
+        return new ParseException(this, ToSpan(template).ToString(), reason);
     }
 }
