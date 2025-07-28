@@ -169,7 +169,7 @@ internal static partial class Parser
             return false;
         }
 
-        if (!codeBlockContext.IsOnlyIdentifier(ElseIf))
+        if (!codeBlockContext.IsJustIdentifier && !codeBlockContext.IsIdentifier(ElseIf))
         {
             throw context.Failure(
                 codeBlockContext.IdentifierIndex,
