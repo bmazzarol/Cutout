@@ -161,17 +161,15 @@ internal static partial class Parser
     )
     {
         if (
-            !codeBlockContext.Identifier.SequenceEqual(End)
-            && !codeBlockContext.Identifier.SequenceEqual(ElseIf)
-            && !codeBlockContext.Identifier.SequenceEqual(Else)
+            !codeBlockContext.IsIdentifier(End)
+            && !codeBlockContext.IsIdentifier(ElseIf)
+            && !codeBlockContext.IsIdentifier(Else)
         )
         {
             return false;
         }
 
-        if (
-            !codeBlockContext.IsJustIdentifier && !codeBlockContext.Identifier.SequenceEqual(ElseIf)
-        )
+        if (!codeBlockContext.IsOnlyIdentifier(ElseIf))
         {
             throw context.Failure(
                 codeBlockContext.IdentifierIndex,
@@ -196,7 +194,7 @@ internal static partial class Parser
         out Syntax.VarStatement? syntax
     )
     {
-        if (!blockContext.Identifier.SequenceEqual(Var))
+        if (!blockContext.IsIdentifier(Var))
         {
             syntax = null;
             return false;
@@ -220,7 +218,7 @@ internal static partial class Parser
         out Syntax.CallStatement? syntax
     )
     {
-        if (!blockContext.Identifier.SequenceEqual(Call))
+        if (!blockContext.IsIdentifier(Call))
         {
             syntax = null;
             return false;
@@ -282,7 +280,7 @@ internal static partial class Parser
         out Syntax.IfStatement? syntax
     )
     {
-        if (!blockContext.Identifier.SequenceEqual(If))
+        if (!blockContext.IsIdentifier(If))
         {
             syntax = null;
             return false;
@@ -308,7 +306,7 @@ internal static partial class Parser
         Syntax.ElseStatement? elseStatement = null;
         do
         {
-            if (endBlockContext!.Identifier.SequenceEqual(ElseIf))
+            if (endBlockContext!.IsIdentifier(ElseIf))
             {
                 if (elseStatement != null)
                 {
@@ -330,7 +328,7 @@ internal static partial class Parser
                     new Syntax.ElseIfStatement(elseifCondition, elseifExpressions)
                 );
             }
-            else if (endBlockContext.Identifier.SequenceEqual(Else))
+            else if (endBlockContext.IsIdentifier(Else))
             {
                 if (elseStatement != null)
                 {
@@ -343,7 +341,7 @@ internal static partial class Parser
                 var elseExpressions = ParseInternal(context, BreakOn.End, out endBlockContext);
                 elseStatement = new Syntax.ElseStatement(elseExpressions);
             }
-        } while (!endBlockContext!.Identifier.SequenceEqual(End));
+        } while (!endBlockContext!.IsIdentifier(End));
 
         syntax = new Syntax.IfStatement(condition, expressions, elseifStatements, elseStatement);
 
