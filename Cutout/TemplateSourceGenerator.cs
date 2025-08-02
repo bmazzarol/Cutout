@@ -97,6 +97,28 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
         TemplateMethodDetails details
     )
     {
+        try
+        {
+            _ = details.AttributeDetails.Syntaxes;
+        }
+        catch (Exception ex)
+        {
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "CUTOUT001",
+                        "Template parsing error",
+                        $"Failed to parse template for {details.ClassDetails.Name}.{details.MethodDetails.Name}: {ex.Message}",
+                        "Cutout",
+                        DiagnosticSeverity.Error,
+                        isEnabledByDefault: true
+                    ),
+                    details.MethodDetails.MethodSymbol.Locations.FirstOrDefault() ?? Location.None
+                )
+            );
+            return;
+        }
+
         using (var writer = new StringWriter())
         {
             var indentedWriter = new IndentedTextWriter(writer, "    ");
