@@ -16,14 +16,13 @@ internal abstract record Syntax
         public bool TryGetLeadingWhitespace(out Token? leadingWhitespace)
         {
             leadingWhitespace = null;
-
             var count = Value.Count;
             if (count == 0 || Value[count - 1].Type != TokenType.Whitespace)
             {
                 return false;
             }
 
-            if (count <= 1 || Value[count - 2].Type != TokenType.Newline)
+            if (count < 2 || Value[count - 2].Type != TokenType.Newline)
             {
                 return false;
             }

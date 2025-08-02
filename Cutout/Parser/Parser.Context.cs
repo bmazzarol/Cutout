@@ -46,15 +46,15 @@ internal static partial class Parser
         }
 
         [ExcludeFromCodeCoverage]
-        public void Reset()
-        {
-            Index = -1;
-        }
-
-        [ExcludeFromCodeCoverage]
         public void Dispose()
         {
             Reset();
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void Reset()
+        {
+            Index = -1;
         }
 
         public void Reset(TokenList tokens, string template)

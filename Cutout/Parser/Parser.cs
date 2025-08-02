@@ -1,4 +1,6 @@
-﻿namespace Cutout;
+﻿using System.Text;
+
+namespace Cutout;
 
 internal static partial class Parser
 {
@@ -246,9 +248,10 @@ internal static partial class Parser
         }
 
         var text = blockContext.RemainingTokens().ToString(context.Template).Trim();
-        var callParts = text.Split('(', ')');
 
-        if (callParts.Length != 3 || string.IsNullOrWhiteSpace(callParts[0]))
+        var openParen = text.IndexOf('(');
+        var closeParen = text.LastIndexOf(')');
+        if (openParen < 0 || closeParen < 0 || closeParen < openParen)
         {
             throw context.Failure(
                 blockContext.IdentifierIndex,
@@ -256,15 +259,81 @@ internal static partial class Parser
             );
         }
 
-        syntax = new Syntax.CallStatement(
-            callParts[0],
-            callParts[1]
-                .Split(',')
-                .Select(p => p.Trim())
-                .Where(p => !string.IsNullOrWhiteSpace(p))
-                .ToArray()
-        );
+        var functionName = text.Substring(0, openParen).Trim();
+        var paramString = text.Substring(openParen + 1, closeParen - openParen - 1);
+        if (string.IsNullOrWhiteSpace(functionName))
+        {
+            throw context.Failure(
+                blockContext.IdentifierIndex,
+                "{% call %} statement requires a function name and () with optional parameters"
+            );
+        }
+
+        var parameters = ParseParameters(paramString);
+        syntax = new Syntax.CallStatement(functionName, parameters ?? []);
         return true;
+    }
+
+    private static List<string>? ParseParameters(string paramString)
+    {
+        List<string>? parameters = null;
+        var sb = new StringBuilder();
+        var parenDepth = 0;
+        var inQuotes = false;
+        var quoteChar = '\0';
+        for (var i = 0; i < paramString.Length; i++)
+        {
+            var c = paramString[i];
+            if (c is '"' or '\'' && (i == 0 || paramString[i - 1] != '\\'))
+            {
+                if (!inQuotes)
+                {
+                    inQuotes = true;
+                    quoteChar = c;
+                }
+                else if (quoteChar == c)
+                {
+                    inQuotes = false;
+                }
+                sb.Append(c);
+            }
+            else
+            {
+                switch (inQuotes)
+                {
+                    case false when c == '(':
+                        parenDepth++;
+                        sb.Append(c);
+                        break;
+                    case false when c == ')':
+                        parenDepth--;
+                        sb.Append(c);
+                        break;
+                    case false when parenDepth == 0 && c == ',':
+                        AddParameter();
+                        sb.Clear();
+                        break;
+                    default:
+                        sb.Append(c);
+                        break;
+                }
+            }
+        }
+        if (sb.Length > 0)
+        {
+            AddParameter();
+        }
+        return parameters;
+
+        void AddParameter()
+        {
+            parameters ??= [];
+            var parameter = sb.ToString().Trim();
+            if (!string.IsNullOrWhiteSpace(parameter))
+            {
+                parameters.Add(parameter);
+            }
+        }
     }
 
     private static void ParseConditionalStatement(

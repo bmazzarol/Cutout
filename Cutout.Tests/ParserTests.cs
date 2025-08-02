@@ -812,4 +812,62 @@ public class ParserTests
         Assert.NotNull(elseNestedIf.Else);
         Assert.Single(elseNestedIf.Else.Expressions);
     }
+
+    [Fact(DisplayName = "Unmatched opening delimiter '{{-' throws error")]
+    public void Case40()
+    {
+        const string template = "{{- code";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:5 (Raw): Code exit token not found (value: 'code')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("code", exception.Value);
+    }
+
+    [Fact(DisplayName = "Unmatched opening delimiter '{%-' throws error")]
+    public void Case41()
+    {
+        const string template = "{%- code";
+        var tokens = Lexer.Tokenize(template);
+        var exception = Assert.Throws<ParseException>(() => Parser.Parse(tokens, template));
+        Assert.Equal(
+            "Parse error at 1:5 (Raw): Code exit token not found (value: 'code')",
+            exception.Message
+        );
+        Assert.Equal(TokenType.Raw, exception.Token.Type);
+        Assert.Equal("code", exception.Value);
+    }
+
+    [Fact(DisplayName = "A call statement with comma in string parameter parses correctly")]
+    public void Case42()
+    {
+        const string template = "{% call function(\"a,b\", 42) %}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+        var item = Assert.Single(result);
+        var callStatement = Assert.IsType<Syntax.CallStatement>(item);
+        Assert.Equal("function", callStatement.Name);
+        Assert.Equal(2, callStatement.Parameters.Count);
+        Assert.Equal("\"a,b\"", callStatement.Parameters[0]);
+        Assert.Equal("42", callStatement.Parameters[1]);
+    }
+
+    [Fact(
+        DisplayName = "A call statement with quoted comma and nested parentheses parses correctly"
+    )]
+    public void Case43()
+    {
+        const string template = "{% call func(\"value, with, commas\", (1, 2, 3)) %}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+        var item = Assert.Single(result);
+        var callStatement = Assert.IsType<Syntax.CallStatement>(item);
+        Assert.Equal("func", callStatement.Name);
+        Assert.Equal(2, callStatement.Parameters.Count);
+        Assert.Equal("\"value, with, commas\"", callStatement.Parameters[0]);
+        Assert.Equal("(1, 2, 3)", callStatement.Parameters[1]);
+    }
 }

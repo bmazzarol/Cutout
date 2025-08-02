@@ -412,10 +412,10 @@ public class LexerTests
         var tokens = Lexer.Tokenize(text);
         Assert.Collection(
             tokens,
-            tokens =>
+            token =>
             {
-                Assert.Equal(TokenType.RenderSuppressWsEnter, tokens.Type);
-                Assert.Equal("{{-", tokens.ToSpan(text).ToString());
+                Assert.Equal(TokenType.RenderSuppressWsEnter, token.Type);
+                Assert.Equal("{{-", token.ToSpan(text).ToString());
             },
             token =>
             {

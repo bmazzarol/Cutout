@@ -11,7 +11,9 @@ namespace Cutout;
 /// <summary>
 /// Source generator for Cutout templates
 /// </summary>
+#pragma warning disable RS1038
 [Generator]
+#pragma warning restore RS1038
 public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
 {
     /// <inheritdoc />

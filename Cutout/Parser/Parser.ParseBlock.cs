@@ -11,8 +11,17 @@ internal static partial class Parser
         public int RawTextCount { get; set; }
         public int IdentifierIndex { get; set; }
 
-        public ReadOnlySpan<char> Identifier =>
-            Context.Tokens[IdentifierIndex].ToSpan(Context.Template);
+        public ReadOnlySpan<char> Identifier
+        {
+            get
+            {
+                if (IdentifierIndex < 0 || IdentifierIndex >= Context.Tokens.Count)
+                {
+                    return [];
+                }
+                return Context.Tokens[IdentifierIndex].ToSpan(Context.Template);
+            }
+        }
         public bool IsJustIdentifier => RawTextCount == 1;
 
         public BlockContext(Context context)
@@ -33,8 +42,22 @@ internal static partial class Parser
 
         public TokenList RemainingTokens()
         {
+            var tokenCount = Context.Tokens.Count;
+            if (
+                IdentifierIndex < 0
+                || ExitIndex < 0
+                || IdentifierIndex + 1 >= ExitIndex
+                || IdentifierIndex >= tokenCount
+                || ExitIndex > tokenCount
+            )
+            {
+                return [];
+            }
             var remainingCount = ExitIndex - 1 - IdentifierIndex;
-            return Context.Tokens.GetRange(IdentifierIndex + 1, remainingCount);
+
+            return remainingCount <= 0
+                ? []
+                : Context.Tokens.GetRange(IdentifierIndex + 1, remainingCount);
         }
 
         public void Reset(Context context)
