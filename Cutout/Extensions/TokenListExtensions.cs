@@ -1,16 +1,29 @@
-﻿namespace Cutout;
+﻿using System.Text;
+
+namespace Cutout;
 
 internal static class TokenListExtensions
 {
-    internal static ReadOnlySpan<char> ToSpan(this TokenList list, string template)
+    internal static string ToString(this TokenList list, string template)
     {
         if (list.Count == 0)
         {
-            return ReadOnlySpan<char>.Empty;
+            return string.Empty;
         }
 
-        var start = list[0];
-        var end = list[list.Count - 1];
-        return start.ToSpan(template, end);
+        var builder = new StringBuilder();
+        foreach (var token in list)
+        {
+            if (token.Type == TokenType.Eof)
+            {
+                break;
+            }
+
+            foreach (var c in token.ToSpan(template))
+            {
+                builder.Append(c);
+            }
+        }
+        return builder.ToString();
     }
 }

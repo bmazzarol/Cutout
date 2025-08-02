@@ -1,189 +1,164 @@
 ﻿namespace Cutout;
 
-internal static class Lexer
+internal static partial class Lexer
 {
-    internal static TokenList Tokenize(in ReadOnlySpan<char> text)
+    [ThreadStatic]
+    private static Context? _context;
+
+    internal static TokenList Tokenize(string text)
     {
         var tokens = new TokenList();
-        var i = 0;
-        var line = 1;
-        var column = 1;
-        var length = text.Length;
+        _context ??= new Context();
+        _context.Reset(text);
 
-        while (
-            i < length
-            && (
-                TryProcessNewline(text, ref i, ref line, ref column, length, tokens)
-                || TryProcessCodeDelimiters(text, ref i, line, ref column, length, tokens)
-                || TryProcessWhitespace(text, ref i, line, ref column, length, tokens)
-                || TryProcessRawText(text, ref i, line, ref column, length, tokens)
-            )
-        )
-        { // collect tokens
+        var collectCount = 0;
+        var isWhitespace = false;
+        CharPosition? start = null;
+        while (_context.MoveNext())
+        {
+            if (TryProcessNewline(_context, out var newLineToken))
+            {
+                FlushAndAdd(newLineToken);
+            }
+            else if (TryProcessCodeDelimiters(_context, out var codeToken))
+            {
+                FlushAndAdd(codeToken);
+            }
+            else
+            {
+                if (isWhitespace ^ char.IsWhiteSpace(_context.Current))
+                {
+                    FlushCollected();
+                    isWhitespace = !isWhitespace;
+                }
+
+                start ??= _context.CurrentPosition;
+                collectCount++;
+            }
         }
 
-        tokens.Add(Token.Eof);
+        FlushAndAdd(Token.Eof);
         return tokens;
-    }
 
-    private static bool TryProcessNewline(
-        ReadOnlySpan<char> text,
-        ref int i,
-        ref int line,
-        ref int column,
-        int length,
-        TokenList tokens
-    )
-    {
-        var c = text[i];
-        var currentPosition = new CharPosition(line, column, i);
-
-        switch (c)
+        void FlushCollected()
         {
-            case '\r' when i + 1 < length && text[i + 1] == '\n':
-                tokens.Add(
-                    new Token(
-                        currentPosition,
-                        new CharPosition(line, column + 1, i + 1),
-                        TokenType.Newline
-                    )
-                );
-                i += 2;
-                line++;
-                column = 1;
-                return true;
-            case '\n':
-                tokens.Add(new Token(currentPosition, currentPosition, TokenType.Newline));
-                i++;
-                line++;
-                column = 1;
-                return true;
-            default:
-                return false;
+            if (collectCount <= 0)
+            {
+                start = null;
+                return;
+            }
+
+            tokens.Add(
+                start!.Value.ToToken(
+                    isWhitespace ? TokenType.Whitespace : TokenType.Raw,
+                    collectCount
+                )
+            );
+            start = null;
+            collectCount = 0;
+        }
+
+        void FlushAndAdd(Token token)
+        {
+            FlushCollected();
+            tokens.Add(token);
         }
     }
 
-    private static bool TryProcessCodeDelimiters(
-        ReadOnlySpan<char> text,
-        ref int i,
-        int line,
-        ref int column,
-        int length,
-        TokenList tokens
-    )
-    {
-        var c = text[i];
-        var currentPosition = new CharPosition(line, column, i);
+    private static readonly char[] WindowsNewline = ['\r', '\n'];
+    private static readonly char[] UnixNewline = ['\n'];
 
-        switch (c)
+    private static bool TryProcessNewline(Context context, out Token token)
+    {
+        if (context.Peek(2).SequenceEqual(WindowsNewline))
         {
-            case '{' when i + 1 < length && text[i + 1] == '{':
-                tokens.Add(
-                    new Token(
-                        currentPosition,
-                        new CharPosition(line, column + 1, i + 1),
-                        TokenType.CodeEnter
-                    )
-                );
-                i += 2;
-                column += 2;
-                return true;
-            case '}' when i + 1 < length && text[i + 1] == '}':
-                tokens.Add(
-                    new Token(
-                        currentPosition,
-                        new CharPosition(line, column + 1, i + 1),
-                        TokenType.CodeExit
-                    )
-                );
-                i += 2;
-                column += 2;
-                return true;
-            default:
-                return false;
+            token = context.Token(TokenType.Newline, 1);
+            context.AdvanceNewline(windowsNewline: true);
+            return true;
         }
+
+        if (context.Peek(1).SequenceEqual(UnixNewline))
+        {
+            token = context.Token(TokenType.Newline, 0);
+            context.AdvanceNewline(windowsNewline: false);
+            return true;
+        }
+
+        token = default;
+        return false;
     }
 
-    private static bool TryProcessWhitespace(
-        ReadOnlySpan<char> text,
-        ref int i,
-        int line,
-        ref int column,
-        int length,
-        TokenList tokens
-    )
-    {
-        var c = text[i];
+    private static readonly char[] RenderSuppressWsEnter = ['{', '{', '-'];
+    private static readonly char[] RenderEnter = ['{', '{'];
+    private static readonly char[] RenderSuppressWsExit = ['-', '}', '}'];
+    private static readonly char[] RenderExit = ['}', '}'];
+    private static readonly char[] CodeSuppressWsEnter = ['{', '%', '-'];
+    private static readonly char[] CodeEnter = ['{', '%'];
+    private static readonly char[] CodeSuppressWsExit = ['-', '%', '}'];
+    private static readonly char[] CodeExit = ['%', '}'];
 
+    private static bool TryProcessCodeDelimiters(Context context, out Token token)
+    {
         if (
-            !char.IsWhiteSpace(c)
-            || c == '\n'
-            || (c == '\r' && i + 1 < length && text[i + 1] == '\n')
+            context.Current != '{'
+            && context.Current != '%'
+            && context.Current != '-'
+            && context.Current != '}'
         )
         {
+            token = default;
             return false;
         }
 
-        var start = i;
-        var columnStart = column;
-
-        while (
-            i < length
-            && char.IsWhiteSpace(text[i])
-            && text[i] != '\n'
-            && !(text[i] == '\r' && i + 1 < length && text[i + 1] == '\n')
-        )
+        if (context.Peek(3).SequenceEqual(RenderSuppressWsEnter))
         {
-            i++;
-            column++;
+            token = context.Token(TokenType.RenderSuppressWsEnter, 2);
+            return context.TryAdvance(count: 2);
         }
 
-        tokens.Add(
-            new Token(
-                new CharPosition(line, columnStart, start),
-                new CharPosition(line, column - 1, i - 1),
-                TokenType.Whitespace
-            )
-        );
-
-        return true;
-    }
-
-    private static bool TryProcessRawText(
-        ReadOnlySpan<char> text,
-        ref int i,
-        int line,
-        ref int column,
-        int length,
-        TokenList tokens
-    )
-    {
-        var start = i;
-        var columnStart = column;
-
-        while (
-            i < length
-            && !(
-                char.IsWhiteSpace(text[i])
-                || (text[i] == '{' && i + 1 < length && text[i + 1] == '{')
-                || (text[i] == '}' && i + 1 < length && text[i + 1] == '}')
-                || text[i] == '\n'
-                || (text[i] == '\r' && i + 1 < length && text[i + 1] == '\n')
-            )
-        )
+        if (context.Peek(2).SequenceEqual(RenderEnter))
         {
-            i++;
-            column++;
+            token = context.Token(TokenType.RenderEnter, 1);
+            return context.TryAdvance(count: 1);
         }
 
-        tokens.Add(
-            new Token(
-                new CharPosition(line, columnStart, start),
-                new CharPosition(line, column - 1, i - 1),
-                TokenType.Raw
-            )
-        );
+        if (context.Peek(3).SequenceEqual(RenderSuppressWsExit))
+        {
+            token = context.Token(TokenType.RenderSuppressWsExit, 2);
+            return context.TryAdvance(count: 2);
+        }
 
-        return true;
+        if (context.Peek(2).SequenceEqual(RenderExit))
+        {
+            token = context.Token(TokenType.RenderExit, 1);
+            return context.TryAdvance(count: 1);
+        }
+
+        if (context.Peek(3).SequenceEqual(CodeSuppressWsEnter))
+        {
+            token = context.Token(TokenType.CodeSuppressWsEnter, 2);
+            return context.TryAdvance(count: 2);
+        }
+
+        if (context.Peek(2).SequenceEqual(CodeEnter))
+        {
+            token = context.Token(TokenType.CodeEnter, 1);
+            return context.TryAdvance(count: 1);
+        }
+
+        if (context.Peek(3).SequenceEqual(CodeSuppressWsExit))
+        {
+            token = context.Token(TokenType.CodeSuppressWsExit, 2);
+            return context.TryAdvance(count: 2);
+        }
+
+        if (context.Peek(2).SequenceEqual(CodeExit))
+        {
+            token = context.Token(TokenType.CodeExit, 1);
+            return context.TryAdvance(count: 1);
+        }
+
+        token = default;
+        return false;
     }
 }

@@ -42,10 +42,10 @@ internal static partial class Parser
     private static SyntaxList ParseInternal(
         Context context,
         BreakOn breakOn,
-        out CodeBlockContext? endBlockContext
+        out BlockContext? endBlockContext
     )
     {
-        CodeBlockContext? blockContext = null;
+        BlockContext? blockContext = null;
         var syntaxList = new SyntaxList();
 
         while (context.MoveNext())
@@ -55,14 +55,15 @@ internal static partial class Parser
                 case TokenType.Eof:
                     if (breakOn != BreakOn.Eof)
                     {
-                        throw context.Failure("Unexpected end of file, expected a {{ end }} block");
+                        throw context.Failure("Unexpected end of file, expected a {% end %} block");
                     }
 
                     continue;
                 case TokenType.CodeEnter:
+                case TokenType.CodeSuppressWsEnter:
                 {
-                    blockContext ??= new CodeBlockContext(context);
-                    ParseCodeBlock(context, blockContext);
+                    blockContext ??= new BlockContext(context);
+                    ParseBlock(context, blockContext);
 
                     if (TryParseRecursiveEnd(context, blockContext, breakOn))
                     {
@@ -132,13 +133,25 @@ internal static partial class Parser
                     }
                     else
                     {
-                        var codeTokens = context.Tokens.GetRange(
-                            blockContext.StartIndex,
-                            blockContext.Length
+                        context.Failure(
+                            blockContext.IdentifierIndex,
+                            $"Unknown code block: {{% {blockContext.Identifier.ToString()} %}}"
                         );
-                        var syntax = new Syntax.RenderableExpression(codeTokens);
-                        syntaxList.Add(syntax);
                     }
+                    break;
+                }
+                case TokenType.RenderEnter:
+                case TokenType.RenderSuppressWsEnter:
+                {
+                    blockContext ??= new BlockContext(context);
+                    ParseBlock(context, blockContext);
+
+                    var codeTokens = context.Tokens.GetRange(
+                        blockContext.StartIndex,
+                        blockContext.Length
+                    );
+                    var syntax = new Syntax.RenderableExpression(codeTokens);
+                    syntaxList.Add(syntax);
                     break;
                 }
                 default:
@@ -156,32 +169,32 @@ internal static partial class Parser
 
     private static bool TryParseRecursiveEnd(
         Context context,
-        CodeBlockContext codeBlockContext,
+        BlockContext blockContext,
         BreakOn breakOn
     )
     {
         if (
-            !codeBlockContext.IsIdentifier(End)
-            && !codeBlockContext.IsIdentifier(ElseIf)
-            && !codeBlockContext.IsIdentifier(Else)
+            !blockContext.IsIdentifier(End)
+            && !blockContext.IsIdentifier(ElseIf)
+            && !blockContext.IsIdentifier(Else)
         )
         {
             return false;
         }
 
-        if (!codeBlockContext.IsJustIdentifier && !codeBlockContext.IsIdentifier(ElseIf))
+        if (!blockContext.IsJustIdentifier && !blockContext.IsIdentifier(ElseIf))
         {
             throw context.Failure(
-                codeBlockContext.IdentifierIndex,
-                $"{{{{ {codeBlockContext.Identifier.ToString()} }}}} statement should only contain the identifier"
+                blockContext.IdentifierIndex,
+                $"{{% {blockContext.Identifier.ToString()} %}} statement should only contain the identifier"
             );
         }
 
         if (breakOn == BreakOn.Eof)
         {
             throw context.Failure(
-                codeBlockContext.IdentifierIndex,
-                $"{{{{ {codeBlockContext.Identifier.ToString()} }}}} found but not expected"
+                blockContext.IdentifierIndex,
+                $"{{% {blockContext.Identifier.ToString()} %}} found but not expected"
             );
         }
 
@@ -190,7 +203,7 @@ internal static partial class Parser
 
     private static bool TryParseVarStatement(
         Context context,
-        CodeBlockContext blockContext,
+        BlockContext blockContext,
         out Syntax.VarStatement? syntax
     )
     {
@@ -204,7 +217,7 @@ internal static partial class Parser
         {
             throw context.Failure(
                 blockContext.IdentifierIndex,
-                "{{ var }} declaration requires an assignment expression"
+                "{% var %} declaration requires an assignment expression"
             );
         }
 
@@ -214,7 +227,7 @@ internal static partial class Parser
 
     private static bool TryParseCallStatement(
         Context context,
-        CodeBlockContext blockContext,
+        BlockContext blockContext,
         out Syntax.CallStatement? syntax
     )
     {
@@ -228,18 +241,18 @@ internal static partial class Parser
         {
             throw context.Failure(
                 blockContext.IdentifierIndex,
-                "{{ call }} statement requires parameters"
+                "{% call %} statement requires parameters"
             );
         }
 
-        var text = blockContext.RemainingTokens().ToSpan(context.Template).Trim().ToString();
+        var text = blockContext.RemainingTokens().ToString(context.Template).Trim();
         var callParts = text.Split('(', ')');
 
         if (callParts.Length != 3 || string.IsNullOrWhiteSpace(callParts[0]))
         {
             throw context.Failure(
                 blockContext.IdentifierIndex,
-                "{{ call }} statement requires a function name and () with optional parameters"
+                "{% call %} statement requires a function name and () with optional parameters"
             );
         }
 
@@ -256,17 +269,17 @@ internal static partial class Parser
 
     private static void ParseConditionalStatement(
         Context context,
-        CodeBlockContext blockContext,
+        BlockContext blockContext,
         out TokenList condition,
         out SyntaxList expressions,
-        out CodeBlockContext? endBlockContext
+        out BlockContext? endBlockContext
     )
     {
         if (blockContext.IsJustIdentifier)
         {
             throw context.Failure(
                 blockContext.IdentifierIndex,
-                $"{{{{ {blockContext.Identifier.ToString()} }}}} statement requires a condition"
+                $"{{% {blockContext.Identifier.ToString()} %}} statement requires a condition"
             );
         }
 
@@ -276,7 +289,7 @@ internal static partial class Parser
 
     private static bool TryParseIfStatement(
         Context context,
-        CodeBlockContext blockContext,
+        BlockContext blockContext,
         out Syntax.IfStatement? syntax
     )
     {
@@ -290,7 +303,7 @@ internal static partial class Parser
         {
             throw context.Failure(
                 blockContext.IdentifierIndex,
-                "{{ if }} statement requires a condition"
+                "{% if %} statement requires a condition"
             );
         }
 
@@ -312,7 +325,7 @@ internal static partial class Parser
                 {
                     throw context.Failure(
                         endBlockContext.IdentifierIndex,
-                        "Cannot have {{ elseif }} after {{ else }} in an {{ if }} statement"
+                        "Cannot have {% elseif %} after {% else %} in an {% if %} statement"
                     );
                 }
 
@@ -334,7 +347,7 @@ internal static partial class Parser
                 {
                     throw context.Failure(
                         endBlockContext.IdentifierIndex,
-                        "Only one {{ else }} is allowed within an {{ if }} statement"
+                        "Only one {% else %} is allowed within an {% if %} statement"
                     );
                 }
 

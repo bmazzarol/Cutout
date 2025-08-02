@@ -53,11 +53,11 @@ using Cutout;
 public static partial class MyTemplate
 {
     private const string Template = """
-        {{ if name == "Bob" }}
+        {% if name == "Bob" %}
         Hello Bob
-        {{ else }}
+        {% else %}
         Hello {{ name }}
-        {{ end }}
+        {% end %}
         """;
     
     [Cutout.Template(Template)] 
@@ -67,12 +67,15 @@ public static partial class MyTemplate
 
 ## Template Language
 
-Everything that is not between `{{` and `}}` is treated as a string literal.
-any expression that does not start with a known keyword is treated as a variable
-to be rendered.
+Everything that is not between `{{` or `{@` and `}}` or `%}` is treated as a 
+string literal.
 
 Any valid C# expression can be used in the template as it is compiled to C#
 code. So if something is not working, the compiler will tell you.
+
+It supports the whitespace control characters `-` the same as liquid.
+
+One deviation from liquid is that there is only one end keyword, `{% end %}`.
 
 The following keywords are supported,
 
@@ -84,13 +87,13 @@ Everything that is a valid C# boolean expression can be used.
 For example,
 
 ```liquid
-{{ if true }}
+{% if true %}
 Some that is true
-{{ else if false }}
+{% elseif false %}
 Some other thing
-{{ else }}
+{% else %}
 The default
-{{ end }}
+{% end %}
 ```
 
 ### For/Each/While
@@ -99,16 +102,16 @@ The standard looping keywords are supported.
 They align to the same keywords in C#.
 
 ```liquid
-{{ for i = 0; i < items.Count; i++ }}
+{% for i = 0; i < items.Count; i++ %}
 {{ i }}
-{{ end }}
+{% end %}
 
-{{ foreach item in items }}
+{% foreach item in items %}
 {{ item }}
-{{ end }}
+{% end %}
 
-{{ while true }}
-{{ end }}
+{% while true %}
+{% end %}
 ```
 
 `var`, `continue`, `break` and `return` are also supported.
@@ -122,5 +125,5 @@ This allows for building up complex templates from smaller ones.
 The syntax is like so,
 
 ```liquid
-{{ call MyFunction(1, 2, 3) }}
+{% call MyFunction(1, 2, 3) %}
 ```

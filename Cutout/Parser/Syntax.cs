@@ -4,7 +4,10 @@ internal abstract record Syntax
 {
     private Syntax() { }
 
-    internal sealed record RawText(TokenList Value) : Syntax;
+    internal sealed record RawText(TokenList Value) : Syntax
+    {
+        public bool ContainsNewLine => Value.Exists(static x => x.Type == TokenType.Newline);
+    }
 
     internal sealed record RenderableExpression(TokenList Value) : Syntax;
 

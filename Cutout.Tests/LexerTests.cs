@@ -44,13 +44,13 @@ public class LexerTests
     [Fact(DisplayName = "Code blocks can be tokenized")]
     public void Case2()
     {
-        const string text = "{{ code block }}";
+        const string text = "{{ render block }}";
         var tokens = Lexer.Tokenize(text);
         Assert.Collection(
             tokens,
             token =>
             {
-                Assert.Equal(TokenType.CodeEnter, token.Type);
+                Assert.Equal(TokenType.RenderEnter, token.Type);
                 Assert.Equal(0, token.Start.Offset);
                 Assert.Equal(1, token.End.Offset);
                 Assert.Equal("{{", token.ToSpan(text).ToString());
@@ -66,36 +66,36 @@ public class LexerTests
             {
                 Assert.Equal(TokenType.Raw, token.Type);
                 Assert.Equal(3, token.Start.Offset);
-                Assert.Equal(6, token.End.Offset);
-                Assert.Equal("code", token.ToSpan(text).ToString());
+                Assert.Equal(8, token.End.Offset);
+                Assert.Equal("render", token.ToSpan(text).ToString());
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(7, token.Start.Offset);
-                Assert.Equal(7, token.End.Offset);
+                Assert.Equal(9, token.Start.Offset);
+                Assert.Equal(9, token.End.Offset);
 
                 Assert.Equal(" ", token.ToSpan(text).ToString());
             },
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(8, token.Start.Offset);
-                Assert.Equal(12, token.End.Offset);
+                Assert.Equal(10, token.Start.Offset);
+                Assert.Equal(14, token.End.Offset);
                 Assert.Equal("block", token.ToSpan(text).ToString());
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(13, token.Start.Offset);
-                Assert.Equal(13, token.End.Offset);
+                Assert.Equal(15, token.Start.Offset);
+                Assert.Equal(15, token.End.Offset);
                 Assert.Equal(" ", token.ToSpan(text).ToString());
             },
             token =>
             {
-                Assert.Equal(TokenType.CodeExit, token.Type);
-                Assert.Equal(14, token.Start.Offset);
-                Assert.Equal(15, token.End.Offset);
+                Assert.Equal(TokenType.RenderExit, token.Type);
+                Assert.Equal(16, token.Start.Offset);
+                Assert.Equal(17, token.End.Offset);
                 Assert.Equal("}}", token.ToSpan(text).ToString());
             },
             token =>
@@ -223,7 +223,7 @@ public class LexerTests
             },
             token =>
             {
-                Assert.Equal(TokenType.CodeEnter, token.Type);
+                Assert.Equal(TokenType.RenderEnter, token.Type);
                 Assert.Equal(8, token.Start.Offset);
                 Assert.Equal(9, token.End.Offset);
                 Assert.Equal("{{", token.ToSpan(text).ToString());
@@ -265,7 +265,7 @@ public class LexerTests
             },
             token =>
             {
-                Assert.Equal(TokenType.CodeExit, token.Type);
+                Assert.Equal(TokenType.RenderExit, token.Type);
                 Assert.Equal(22, token.Start.Offset);
                 Assert.Equal(23, token.End.Offset);
                 Assert.Equal("}}", token.ToSpan(text).ToString());
@@ -349,7 +349,7 @@ public class LexerTests
             },
             token =>
             {
-                Assert.Equal(TokenType.CodeEnter, token.Type);
+                Assert.Equal(TokenType.RenderEnter, token.Type);
                 Assert.Equal(46, token.Start.Offset);
                 Assert.Equal(47, token.End.Offset);
                 Assert.Equal("{{", token.ToSpan(text).ToString());
@@ -391,7 +391,7 @@ public class LexerTests
             },
             token =>
             {
-                Assert.Equal(TokenType.CodeExit, token.Type);
+                Assert.Equal(TokenType.RenderExit, token.Type);
                 Assert.Equal(59, token.Start.Offset);
                 Assert.Equal(60, token.End.Offset);
                 Assert.Equal("}}", token.ToSpan(text).ToString());
@@ -403,5 +403,84 @@ public class LexerTests
                 Assert.Equal(-1, token.End.Offset);
             }
         );
+    }
+
+    [Fact(DisplayName = "Render with whitespace suppression can be tokenized")]
+    public void Case5()
+    {
+        const string text = "{{- render block -}}";
+        var tokens = Lexer.Tokenize(text);
+        Assert.Collection(
+            tokens,
+            tokens =>
+            {
+                Assert.Equal(TokenType.RenderSuppressWsEnter, tokens.Type);
+                Assert.Equal("{{-", tokens.ToSpan(text).ToString());
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(" ", token.ToSpan(text).ToString());
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal("render", token.ToSpan(text).ToString());
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(" ", token.ToSpan(text).ToString());
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Raw, token.Type);
+                Assert.Equal("block", token.ToSpan(text).ToString());
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Whitespace, token.Type);
+                Assert.Equal(" ", token.ToSpan(text).ToString());
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.RenderSuppressWsExit, token.Type);
+                Assert.Equal("-}}", token.ToSpan(text).ToString());
+            },
+            token =>
+            {
+                Assert.Equal(TokenType.Eof, token.Type);
+            }
+        );
+    }
+
+    [Fact(DisplayName = "Render with whitespace suppression and newlines can be tokenized")]
+    public void Case6()
+    {
+        const string text = "{{ render block -}}\n{% more code -%}   \n";
+        var tokens = Lexer.Tokenize(text);
+        Assert.Equal(text, tokens.ToString(text));
+        var withWsSuppression = Lexer.ApplyWhitespaceSuppression(tokens);
+        Assert.Equal("{{ render block -}}{% more code -%}", withWsSuppression.ToString(text));
+    }
+
+    [Fact(
+        DisplayName = "Render with whitespace suppression and newlines can be tokenized (leading and trailing spaces)"
+    )]
+    public void Case7()
+    {
+        const string text = "  \n  {{- render block -}}\n {%- more code -%}   \n  ";
+        var tokens = Lexer.Tokenize(text);
+        Assert.Equal(text, tokens.ToString(text));
+        var withWsSuppression = Lexer.ApplyWhitespaceSuppression(tokens);
+        Assert.Equal("  {{- render block -}}{%- more code -%}  ", withWsSuppression.ToString(text));
+    }
+
+    [Fact(DisplayName = "Code and render blocks can be mixed in a single text")]
+    public void Case8()
+    {
+        const string text = "This is {{ render block }}\n{% code block %} ";
+        var tokens = Lexer.Tokenize(text);
+        Assert.Equal(text, tokens.ToString(text));
     }
 }

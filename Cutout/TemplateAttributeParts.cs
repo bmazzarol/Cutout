@@ -22,8 +22,7 @@ internal sealed record TemplateAttributeParts
 
         Template = template.HasValue ? template.Value?.ToString() : string.Empty;
 
-        var templateSpan = Template.AsSpan();
-        var tokens = Lexer.Tokenize(templateSpan);
+        var tokens = Lexer.Tokenize(Template ?? string.Empty);
         // Syntaxes = TemplateParser.Parse(tokens, templateSpan);
     }
 }
