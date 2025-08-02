@@ -85,11 +85,11 @@ internal static partial class Parser
                     }
                     else if (TryParseVarStatement(context, blockContext, out var varSyntax))
                     {
-                        syntaxList.Add(varSyntax);
+                        syntaxList.Add(varSyntax!);
                     }
                     else if (TryParseCallStatement(context, blockContext, out var callSyntax))
                     {
-                        syntaxList.Add(callSyntax);
+                        syntaxList.Add(callSyntax!);
                     }
                     else if (blockContext.IsIdentifier(While))
                     {
@@ -129,7 +129,7 @@ internal static partial class Parser
                     }
                     else if (TryParseIfStatement(context, blockContext, out var ifSyntax))
                     {
-                        syntaxList.Add(ifSyntax);
+                        syntaxList.Add(ifSyntax!);
                     }
                     else
                     {

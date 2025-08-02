@@ -13,8 +13,8 @@ internal static partial class Test
     internal static partial void TestWithModel(this StringBuilder builder, SomeModel model)
     {
         builder.Append(@"This is a more complex example with a parameter ");
-        builder.Append(model.Value);
+        builder.Append( model.Value );
         builder.Append(@" and a second parameter ");
-        builder.Append(model.Text);
+        builder.Append( model.Text );
     }
 }

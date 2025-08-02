@@ -8,16 +8,23 @@ internal static class Renderer
         this IndentedTextWriter writer,
         string template,
         Syntax syntax,
+        Syntax? lastSyntax,
         bool includeWhitespaceReceiver
     )
     {
         switch (syntax)
         {
             case Syntax.VarStatement varStatement:
-                writer.WriteLine($"var {varStatement.Assignment};");
+                writer.WriteLine($"var {varStatement.Assignment.ToString(template)};");
                 break;
             case Syntax.CallStatement callStatement:
-                writer.WriteCallStatement(template, callStatement, includeWhitespaceReceiver);
+                writer.WriteCallStatement(
+                    lastSyntax is Syntax.RawText rt && rt.TryGetLeadingWhitespace(out var wst)
+                        ? wst?.ToSpan(template).ToString()
+                        : null,
+                    callStatement,
+                    includeWhitespaceReceiver
+                );
                 break;
             case Syntax.IfStatement ifStatement:
                 writer.WriteConditionalStatement(
@@ -26,22 +33,27 @@ internal static class Renderer
                     "if (",
                     includeWhitespaceReceiver
                 );
-                break;
-            case Syntax.ElseIfStatement elseIfStatement:
-                writer.WriteConditionalStatement(
-                    template,
-                    elseIfStatement,
-                    "else if (",
-                    includeWhitespaceReceiver
-                );
-                break;
-            case Syntax.ElseStatement elseStatement:
-                writer.WriteLine("else");
-                writer.WriteExpressions(
-                    template,
-                    elseStatement.Expressions,
-                    includeWhitespaceReceiver
-                );
+
+                foreach (var ifStatementElseIf in ifStatement.ElseIfs ?? [])
+                {
+                    writer.WriteConditionalStatement(
+                        template,
+                        ifStatementElseIf,
+                        "else if (",
+                        includeWhitespaceReceiver
+                    );
+                }
+
+                if (ifStatement.Else != null)
+                {
+                    writer.WriteLine("else");
+                    writer.WriteExpressions(
+                        template,
+                        ifStatement.Else.Expressions,
+                        includeWhitespaceReceiver
+                    );
+                }
+
                 break;
             case Syntax.ForStatement forStatement:
                 writer.WriteConditionalStatement(
@@ -97,7 +109,7 @@ internal static class Renderer
     )
     {
         writer.Write("builder.Append(@\"");
-        writer.Write(rawText.Value.ToSpan(template).ToString());
+        writer.Write(rawText.Value.ToString(template));
         writer.WriteLine("\");");
 
         if (includeWhitespaceReceiver && rawText.ContainsNewLine)
@@ -114,13 +126,13 @@ internal static class Renderer
     )
     {
         writer.Write("builder.Append(");
-        writer.Write(renderableExpression.Value.ToSpan(template).ToString());
+        writer.Write(renderableExpression.Value.ToString(template));
         writer.WriteLine(");");
 
         if (includeWhitespaceReceiver)
         {
             writer.Write("if ((");
-            writer.Write(renderableExpression.Value.ToSpan(template).ToString());
+            writer.Write(renderableExpression.Value.ToString(template));
             writer.WriteLine(").ToString().IndexOf('\\n') != -1)");
             writer.WriteLine("{");
             using (writer.Indent())
@@ -144,7 +156,13 @@ internal static class Renderer
             for (var i = 0; i < expressions.Count; i++)
             {
                 var syntax = expressions[i];
-                WriteSyntax(writer, template, syntax, includeWhitespaceReceiver);
+                WriteSyntax(
+                    writer,
+                    template,
+                    syntax,
+                    lastSyntax: i < expressions.Count - 1 ? expressions[i + 1] : null,
+                    includeWhitespaceReceiver
+                );
             }
         }
         writer.WriteLine("}");
@@ -159,7 +177,7 @@ internal static class Renderer
     )
     {
         writer.Write(conditionalPrefix);
-        writer.Write(forStatement.Condition);
+        writer.Write(forStatement.Condition.ToString(template));
         writer.WriteLine(")");
 
         WriteExpressions(writer, template, forStatement.Expressions, includeWhitespaceReceiver);
@@ -167,18 +185,22 @@ internal static class Renderer
 
     private static void WriteCallStatement(
         this IndentedTextWriter writer,
-        string template,
+        string? whitespace,
         Syntax.CallStatement callStatement,
         bool includeWhitespaceReceiver
     )
     {
         writer.Write(callStatement.Name);
-        writer.Write("(builder,");
-        writer.Write(callStatement.Parameters);
-        if (!string.IsNullOrEmpty(callStatement.LeadingWhitespace))
+        writer.Write("(builder");
+        foreach (var parameter in callStatement.Parameters)
         {
-            writer.Write(includeWhitespaceReceiver ? ",whitespace + \"" : ",\"");
-            writer.Write(callStatement.LeadingWhitespace);
+            writer.Write(", ");
+            writer.Write(parameter);
+        }
+        if (!string.IsNullOrEmpty(whitespace))
+        {
+            writer.Write(includeWhitespaceReceiver ? ", whitespace + \"" : ",\"");
+            writer.Write(whitespace);
             writer.Write("\"");
         }
         writer.WriteLine(");");

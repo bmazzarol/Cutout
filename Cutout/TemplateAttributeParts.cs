@@ -23,6 +23,7 @@ internal sealed record TemplateAttributeParts
         Template = template.HasValue ? template.Value?.ToString() : string.Empty;
 
         var tokens = Lexer.Tokenize(Template ?? string.Empty);
-        // Syntaxes = TemplateParser.Parse(tokens, templateSpan);
+        var tokensWithWsSuppressed = Lexer.ApplyWhitespaceSuppression(tokens);
+        Syntaxes = Parser.Parse(tokensWithWsSuppressed, Template ?? string.Empty);
     }
 }

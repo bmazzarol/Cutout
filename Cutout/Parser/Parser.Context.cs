@@ -31,12 +31,6 @@ internal static partial class Parser
         }
 
         [ExcludeFromCodeCoverage]
-        public void Reset()
-        {
-            Index = -1;
-        }
-
-        [ExcludeFromCodeCoverage]
         object IEnumerator.Current => Current;
 
         public Token Current => Tokens[Index];
@@ -49,6 +43,12 @@ internal static partial class Parser
         public ParseException Failure(int index, string reason)
         {
             return Tokens[index].Failure(Template, reason);
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void Reset()
+        {
+            Index = -1;
         }
 
         [ExcludeFromCodeCoverage]

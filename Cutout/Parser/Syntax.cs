@@ -7,6 +7,30 @@ internal abstract record Syntax
     internal sealed record RawText(TokenList Value) : Syntax
     {
         public bool ContainsNewLine => Value.Exists(static x => x.Type == TokenType.Newline);
+
+        /// <summary>
+        /// Returns the leading whitespace if it exists and the previous token is a newline
+        /// </summary>
+        /// <param name="leadingWhitespace">leading whitespace token if it exists</param>
+        /// <returns>>true if leading whitespace exists, otherwise false</returns>
+        public bool TryGetLeadingWhitespace(out Token? leadingWhitespace)
+        {
+            leadingWhitespace = null;
+
+            var count = Value.Count;
+            if (count == 0 || Value[count - 1].Type != TokenType.Whitespace)
+            {
+                return false;
+            }
+
+            if (count <= 1 || Value[count - 2].Type != TokenType.Newline)
+            {
+                return false;
+            }
+
+            leadingWhitespace = Value[count - 1];
+            return true;
+        }
     }
 
     internal sealed record RenderableExpression(TokenList Value) : Syntax;

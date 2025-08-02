@@ -1,5 +1,9 @@
-﻿namespace Cutout.Exceptions;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace Cutout.Exceptions;
+
+[SuppressMessage("Roslynator", "RCS1194:Implement exception constructors")]
+[SuppressMessage("Critical Code Smell", "S3871:Exception types should be \"public\"")]
 internal sealed class ParseException : Exception
 {
     public Token Token { get; }

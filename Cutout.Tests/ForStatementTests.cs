@@ -14,19 +14,21 @@ public static partial class ForTemplates
 
         These are the tags,
 
-        {{ foreach tag in product.Tags }}
+        {%- foreach tag in product.Tags %}
         * {{ tag }}
-        {{ end }}
+        {%- end %}
+
         These can also be numbered,
 
-        {{ foreach (tag, index) in product.Tags.Select((tag,index) => (tag, index + 1)) }}
-        {{index}}. {{ tag }}
-        {{ end }}
+        {%- foreach (tag, index) in product.Tags.Select((tag,index) => (tag, index + 1)) %}
+        {{ index }}. {{ tag }}
+        {%- end %}
+
         And used with traditional for loop,
 
-        {{ for i = 0; i < product.Tags.Length; i++ }}
-        {{i + 1}}. {{ product.Tags[i] }}
-        {{ end }}
+        {%- for i = 0; i < product.Tags.Length; i++ %}
+        {{ i + 1 }}. {{ product.Tags[i] }}
+        {%- end %}
         """;
 
     [Template(ForExample1)]
@@ -35,10 +37,10 @@ public static partial class ForTemplates
     private const string ForExample2 = """
         A while loop can also be used
 
-        {{ var i = 0 }}
-        {{ while i < product.Tags.Length }}
-        {{i + 1}}. {{ product.Tags[i++] }}
-        {{ end }}
+        {% var i = 0 -%}
+        {% while i < product.Tags.Length -%}
+        {{ i + 1 }}. {{ product.Tags[i++] }}
+        {% end %}
         """;
 
     [Template(ForExample2)]
@@ -46,15 +48,15 @@ public static partial class ForTemplates
 
     private const string ForExample3 = """
         Continue and break can also be used
-        {{ for i = 0; i < product.Tags.Length; i++ }}
-        {{ if product.Tags[i] == "awesome" }}
-        {{ continue }}
-        {{ end }}
-        {{ if product.Tags[i] == "shoes" }}
-        {{ break }}
-        {{ end }}
+        {%- for i = 0; i < product.Tags.Length; i++ -%}
+        {%- if product.Tags[i] == "awesome" -%}
+        {%- continue -%}
+        {%- end -%}
+        {%- if product.Tags[i] == "shoes" -%}
+        {%- break -%}
+        {%- end -%}
         {{i + 1}}. {{ product.Tags[i] }}
-        {{ end }}
+        {%- end -%}
         """;
 
     [Template(ForExample3)]
@@ -91,7 +93,6 @@ public class ForStatementTests
             1. awesome
             2. shoes
             3. cool
-
             """,
             builder.ToString()
         );
@@ -100,7 +101,7 @@ public class ForStatementTests
     [Fact(DisplayName = "Case1 produces the expected source")]
     public Task Case1a() =>
         """
-            [Template("This is a test for tags [{{ foreach tag in product.Tags }}{{tag}}; {{ end }}] which is cool.")]
+            [Template("This is a test for tags [{% foreach tag in product.Tags %}{{tag}}; {% end %}] which is cool.")]
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
 
@@ -125,7 +126,7 @@ public class ForStatementTests
     [Fact(DisplayName = "Case2 produces the expected source")]
     public Task Case2a() =>
         """
-            [Template("This is a test for tags [{{ while i < product.Tags.Length }}{{i + 1}}. {{ product.Tags[i++] }}{{ end }}] which is cool.")]
+            [Template("This is a test for tags [{% while i < product.Tags.Length %}{{i + 1}}. {{ product.Tags[i++] }}{% end %}] which is cool.")]
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
 
@@ -134,19 +135,13 @@ public class ForStatementTests
     {
         var builder = new StringBuilder();
         builder.Case3(new ForTemplates.Product("Awesome Shoes", ["awesome", "shoes", "cool"]));
-        Assert.Equal(
-            """
-            Continue and break can also be used
-
-            """,
-            builder.ToString()
-        );
+        Assert.Equal("Continue and break can also be used", builder.ToString());
     }
 
     [Fact(DisplayName = "Case3 produces the expected source")]
     public Task Case3a() =>
         """
-            [Template("This is a test for tags [{{ for i = 0; i < product.Tags.Length; i++ }}{{ if product.Tags[i] == \"awesome\" }}{{ continue }}{{ else if product.Tags[i] == \"shoes\" }}{{ break }}{{ end }}{{i + 1}}. {{ product.Tags[i] }}{{ end }}] which is cool.")]
+            [Template("This is a test for tags [{% for i = 0; i < product.Tags.Length; i++ %}{% if product.Tags[i] == \"awesome\" %}{% continue %}{% elseif product.Tags[i] == \"shoes\" %}{% break %}{% end %}{{i + 1}}. {{ product.Tags[i] }}{% end %}] which is cool.")]
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
 }

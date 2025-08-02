@@ -12,7 +12,7 @@ internal static partial class Test
 {
     internal static void Test(this StringBuilder builder, String product, string whitespace)
     {
-        if (product == "Awesome Shoes")
+        if ( product == "Awesome Shoes" )
         {
             builder.Append(@" These shoes are awesome! ");
         }

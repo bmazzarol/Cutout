@@ -18,17 +18,17 @@ public class ParserTests
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "raw");
+                Assert.Equal("raw", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "string");
+                Assert.Equal("string", token.ToSpan(template));
             }
         );
     }
@@ -47,17 +47,17 @@ public class ParserTests
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             },
             token =>
             {
+                Assert.Equal("code", token.ToSpan(template));
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "code");
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             }
         );
     }
@@ -246,37 +246,37 @@ public class ParserTests
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "x");
+                Assert.Equal("x", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "=");
+                Assert.Equal("=", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "42");
+                Assert.Equal("42", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             }
         );
     }
@@ -415,17 +415,17 @@ public class ParserTests
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "condition");
+                Assert.Equal("condition", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             }
         );
 
@@ -436,27 +436,27 @@ public class ParserTests
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "some");
+                Assert.Equal("some", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Raw, token.Type);
-                Assert.Equal(token.ToSpan(template), "code");
+                Assert.Equal("code", token.ToSpan(template));
             },
             token =>
             {
                 Assert.Equal(TokenType.Whitespace, token.Type);
-                Assert.Equal(token.ToSpan(template), " ");
+                Assert.Equal(" ", token.ToSpan(template));
             }
         );
     }

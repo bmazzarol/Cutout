@@ -13,14 +13,14 @@ internal static partial class Test
     internal static void TestWithTwoParameters(this StringBuilder builder, Int32 param, String param2, string whitespace)
     {
         builder.Append(@"This is a more complex example with a parameter ");
-        builder.Append(param);
-        if ((param).ToString().IndexOf('\n') != -1)
+        builder.Append( param );
+        if (( param ).ToString().IndexOf('\n') != -1)
         {
             builder.Append(whitespace);
         }
         builder.Append(@" and a second parameter ");
-        builder.Append(param2);
-        if ((param2).ToString().IndexOf('\n') != -1)
+        builder.Append( param2 );
+        if (( param2 ).ToString().IndexOf('\n') != -1)
         {
             builder.Append(whitespace);
         }

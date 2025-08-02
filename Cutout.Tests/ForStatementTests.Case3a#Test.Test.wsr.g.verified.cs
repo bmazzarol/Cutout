@@ -13,13 +13,13 @@ internal static partial class Test
     internal static void Test(this StringBuilder builder, String product, string whitespace)
     {
         builder.Append(@"This is a test for tags [");
-        for (var i = 0; i < product.Tags.Length; i++)
+        for (var  i = 0; i < product.Tags.Length; i++ )
         {
-            if (product.Tags[i] == "awesome")
+            if ( product.Tags[i] == "awesome" )
             {
                 continue;
             }
-            else if (product.Tags[i] == "shoes")
+            else if ( product.Tags[i] == "shoes" )
             {
                 break;
             }
@@ -29,8 +29,8 @@ internal static partial class Test
                 builder.Append(whitespace);
             }
             builder.Append(@". ");
-            builder.Append(product.Tags[i]);
-            if ((product.Tags[i]).ToString().IndexOf('\n') != -1)
+            builder.Append( product.Tags[i] );
+            if (( product.Tags[i] ).ToString().IndexOf('\n') != -1)
             {
                 builder.Append(whitespace);
             }

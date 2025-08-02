@@ -93,10 +93,12 @@ public sealed partial class TemplateSourceGenerator
             return;
         }
 
-        // foreach (var syntax in model.AttributeDetails.Syntaxes)
-        // {
-        //     writer.WriteSyntax(syntax, includeWhitespaceReceiver);
-        // }
+        Syntax? lastSyntax = null;
+        foreach (var syntax in model.AttributeDetails.Syntaxes)
+        {
+            writer.WriteSyntax(template, syntax, lastSyntax, includeWhitespaceReceiver);
+            lastSyntax = syntax;
+        }
     }
 
     private static void WriteNamespaceParts(IndentedTextWriter writer, TemplateMethodDetails model)

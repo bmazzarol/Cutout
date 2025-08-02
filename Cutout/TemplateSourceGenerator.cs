@@ -8,9 +8,13 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Cutout;
 
+/// <summary>
+/// Source generator for Cutout templates
+/// </summary>
 [Generator]
 public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
 {
+    /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx =>
