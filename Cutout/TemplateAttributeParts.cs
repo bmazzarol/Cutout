@@ -6,7 +6,9 @@ internal sealed record TemplateAttributeParts
 {
     public string? Template { get; }
 
-    internal IReadOnlyList<Syntax> Syntaxes { get; } = [];
+    private readonly Lazy<SyntaxList> _syntaxes;
+
+    internal SyntaxList Syntaxes => _syntaxes.Value;
 
     public TemplateAttributeParts(MethodDetails details, SemanticModel ctxSemanticModel)
     {
@@ -22,8 +24,11 @@ internal sealed record TemplateAttributeParts
 
         Template = template.HasValue ? template.Value?.ToString() : string.Empty;
 
-        var tokens = Lexer.Tokenize(Template ?? string.Empty);
-        var tokensWithWsSuppressed = Lexer.ApplyWhitespaceSuppression(tokens);
-        Syntaxes = Parser.Parse(tokensWithWsSuppressed, Template ?? string.Empty);
+        _syntaxes = new Lazy<SyntaxList>(() =>
+        {
+            var tokens = Lexer.Tokenize(Template ?? string.Empty);
+            var tokensWithWsSuppressed = Lexer.ApplyWhitespaceSuppression(tokens);
+            return Parser.Parse(tokensWithWsSuppressed, Template ?? string.Empty);
+        });
     }
 }
