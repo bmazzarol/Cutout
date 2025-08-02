@@ -1,48 +1,45 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <Import Project="$([MSBuild]::GetPathOfFileAbove('Common.Release.props', '$(MSBuildThisFileDirectory)'))"/>
-
-    <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <Title>Cutout</Title>
-        <Description>Zero cost compile time templating</Description>
-        <PackageTags>C#, StringBuilder, Templating, Liquid</PackageTags>
-        <PackageProjectUrl>https://bmazzarol.github.io/Cutout</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/bmazzarol/Cutout</RepositoryUrl>
-        <PackageIcon>scissors-icon.png</PackageIcon>
-        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-        <IsRoslynComponent>true</IsRoslynComponent>
-        <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
-        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-        <NoWarn>RS1035;MA0037</NoWarn>
-    </PropertyGroup>
-
-    <!-- This ensures the library will be packaged as a source generator when we use `dotnet pack` -->
-    <ItemGroup>
-        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Include="..\scissors-icon.png" Pack="true" PackagePath="\"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.CSharp"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="Parser\TemplateParser*" />
-      <Compile Remove="Renderer\Renderer.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Renderer\" />
-    </ItemGroup>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Common.Release.props', '$(MSBuildThisFileDirectory)'))" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Title>Cutout</Title>
+    <Description>Zero cost compile time templating</Description>
+    <PackageTags>C#, StringBuilder, Templating, Liquid</PackageTags>
+    <PackageProjectUrl>https://bmazzarol.github.io/Cutout</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/bmazzarol/Cutout</RepositoryUrl>
+    <PackageIcon>scissors-icon.png</PackageIcon>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>RS1035;MA0037</NoWarn>
+  </PropertyGroup>
+  <!-- This ensures the library will be packaged as a source generator when we use `dotnet pack` -->
+  <ItemGroup>
+    <None
+      Include="$(OutputPath)\$(AssemblyName).dll"
+      Pack="true"
+      PackagePath="analyzers/dotnet/cs"
+      Visible="false"
+    />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\scissors-icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Parser\TemplateParser*" />
+    <Compile Remove="Renderer\Renderer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Renderer\" />
+  </ItemGroup>
 </Project>
