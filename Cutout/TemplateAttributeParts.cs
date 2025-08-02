@@ -1,7 +1,4 @@
-﻿using Cutout.Extensions;
-using Cutout.Parser;
-using Microsoft.CodeAnalysis;
-using Scriban.Parsing;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Cutout;
 
@@ -25,8 +22,8 @@ internal sealed record TemplateAttributeParts
 
         Template = template.HasValue ? template.Value?.ToString() : string.Empty;
 
-        var lexer = new Lexer(Template!);
-        var tokens = lexer.ToArray();
-        Syntaxes = TemplateParser.Parse(tokens, Template.AsSpan());
+        var tokens = Lexer.Tokenize(Template ?? string.Empty);
+        var tokensWithWsSuppressed = Lexer.ApplyWhitespaceSuppression(tokens);
+        Syntaxes = Parser.Parse(tokensWithWsSuppressed, Template ?? string.Empty);
     }
 }

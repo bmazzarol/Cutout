@@ -7,7 +7,7 @@ public static partial class CallTemplates
 {
     public sealed record Product(string Title);
 
-    private const string CallExample1 = "Some text before {{ call Case2(product.Title) }}";
+    private const string CallExample1 = "Some text before {% call Case2(product.Title) %}";
 
     [Template(CallExample1)]
     public static partial void Case1(this StringBuilder builder, Product product);
@@ -20,7 +20,7 @@ public static partial class CallTemplates
     private const string CallExample3 = """
         This is an example with a call with leading whitespace,
         ```
-            {{ call Case4(product) }}
+            {% call Case4(product) %}
         ```
         """;
 
@@ -50,7 +50,7 @@ public sealed class CallStatementTests
     [Fact(DisplayName = "Case1 produces the expected source")]
     public Task Case1a() =>
         """
-            [Template("Some text before {{ call Case2(product) }}")]
+            [Template("Some text before {% call Case2(product) %}")]
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
 

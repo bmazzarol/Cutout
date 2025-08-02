@@ -13,7 +13,7 @@ internal static partial class Test
     internal static void Test(this StringBuilder builder, String product, string whitespace)
     {
         builder.Append(@"This is a test for tags [");
-        foreach (var tag in product.Tags)
+        foreach (var  tag in product.Tags )
         {
             builder.Append(tag);
             if ((tag).ToString().IndexOf('\n') != -1)

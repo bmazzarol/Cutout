@@ -32,11 +32,11 @@ public static partial class Examples
 
         It has a conditional block,
 
-        {{ if model.Value > 0 }}
+        {% if model.Value > 0 -%}
         The result is positive.
-        {{ else }}
+        {%- else -%}
         The result is negative.
-        {{ end }}
+        {%- end -%}
         """;
 
     [Template(ExampleTemplate)]
@@ -146,11 +146,11 @@ public class TemplateTests
         """
             private const string ExampleTemplate = @"This is an example of a template that is defined in a constant string.
 
-            {{ if model.Value > 0 }}
+            {% if model.Value > 0 -%}
             The result is positive.
-            {{ else }}
+            {%- else -%}
             The result is negative.
-            {{ end }}
+            {%- end -%}
             ";
 
             [Template(ExampleTemplate)]

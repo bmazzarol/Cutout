@@ -15,7 +15,7 @@ internal static partial class Test
         builder.Append(@"This is an example of a template that is defined in a constant string.
 
 ");
-        if (model.Value > 0)
+        if ( model.Value > 0 )
         {
             builder.Append(@"The result is positive.");
         }

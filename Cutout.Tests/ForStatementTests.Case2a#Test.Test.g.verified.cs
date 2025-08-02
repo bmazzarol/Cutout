@@ -13,11 +13,11 @@ internal static partial class Test
     internal static partial void Test(this StringBuilder builder, String product)
     {
         builder.Append(@"This is a test for tags [");
-        while (i < product.Tags.Length)
+        while ( i < product.Tags.Length )
         {
             builder.Append(i + 1);
             builder.Append(@". ");
-            builder.Append(product.Tags[i++]);
+            builder.Append( product.Tags[i++] );
         }
         builder.Append(@"] which is cool.");
     }

@@ -1,6 +1,6 @@
 ﻿using System.CodeDom.Compiler;
 
-namespace Cutout.Extensions;
+namespace Cutout;
 
 internal static class IndentedTextWriterExtensions
 {

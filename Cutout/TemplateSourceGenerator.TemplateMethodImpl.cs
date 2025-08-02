@@ -1,5 +1,4 @@
 using System.CodeDom.Compiler;
-using Cutout.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace Cutout;
@@ -94,9 +93,11 @@ public sealed partial class TemplateSourceGenerator
             return;
         }
 
+        Syntax? lastSyntax = null;
         foreach (var syntax in model.AttributeDetails.Syntaxes)
         {
-            writer.WriteSyntax(syntax, includeWhitespaceReceiver);
+            writer.WriteSyntax(template, syntax, lastSyntax, includeWhitespaceReceiver);
+            lastSyntax = syntax;
         }
     }
 

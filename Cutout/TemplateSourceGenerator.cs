@@ -1,6 +1,5 @@
 using System.CodeDom.Compiler;
 using System.Text;
-using Cutout.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,9 +8,15 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Cutout;
 
+/// <summary>
+/// Source generator for Cutout templates
+/// </summary>
+#pragma warning disable RS1038
 [Generator]
+#pragma warning restore RS1038
 public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
 {
+    /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx =>

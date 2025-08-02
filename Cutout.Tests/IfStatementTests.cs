@@ -8,33 +8,33 @@ public static partial class IfTemplates
     public sealed record Product(string Title);
 
     private const string IfExample1 = """
-        {{ if product.Title == "Awesome Shoes" }}
+        {% if product.Title == "Awesome Shoes" -%}
         These shoes are awesome!
-        {{ end }}
+        {%- end -%}
         """;
 
     [Template(IfExample1)]
     public static partial void Case1(this StringBuilder builder, Product product);
 
     private const string IfExample2 = """
-        {{ if product.Title == "Awesome Shoes" }}
+        {% if product.Title == "Awesome Shoes" -%}
         These shoes are awesome!
-        {{ else }}
+        {%- else -%}
         These shoes are not awesome!
-        {{ end }}
+        {%- end -%}
         """;
 
     [Template(IfExample2)]
     public static partial void Case2(this StringBuilder builder, Product product);
 
     private const string IfExample3 = """
-        {{ if product.Title == "Awesome Shoes" }}
+        {% if product.Title == "Awesome Shoes" -%}
         These shoes are awesome!
-        {{ else if product.Title == "Cool Shoes" }}
+        {%- elseif product.Title == "Cool Shoes" -%}
         These shoes are cool!
-        {{ else }}
+        {%- else -%}
         These shoes are not awesome or cool!
-        {{ end }}
+        {%- end -%}
         """;
 
     [Template(IfExample3)]
@@ -54,7 +54,7 @@ public class IfStatementTests
     [Fact(DisplayName = "Case1 produces the expected source")]
     public Task Case1a() =>
         """
-            [Template("{{ if product == \"Awesome Shoes\" }} These shoes are awesome! {{ end }}")]
+            [Template("{% if product == \"Awesome Shoes\" %} These shoes are awesome! {% end %}")]
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
 
@@ -73,7 +73,7 @@ public class IfStatementTests
     [Fact(DisplayName = "Case2 produces the expected source")]
     public Task Case2a() =>
         """
-            [Template("{{ if product == \"Awesome Shoes\" }} These shoes are awesome! {{ else }} These shoes are not awesome! {{ end }}")]
+            [Template("{% if product == \"Awesome Shoes\" %} These shoes are awesome! {% else %} These shoes are not awesome! {% end %}")]
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
 
@@ -96,7 +96,7 @@ public class IfStatementTests
     [Fact(DisplayName = "Case3 produces the expected source")]
     public Task Case3a() =>
         """
-            [Template("{{ if product == \"Awesome Shoes\" }} These shoes are awesome! {{ else if product == \"Cool Shoes\" }} These shoes are cool! {{ else }} These shoes are not awesome or cool! {{ end }}")]
+            [Template("{% if product == \"Awesome Shoes\" %} These shoes are awesome! {% elseif product == \"Cool Shoes\" %} These shoes are cool! {% else %} These shoes are not awesome or cool! {% end %}")]
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
 }

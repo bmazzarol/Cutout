@@ -13,19 +13,19 @@ internal static partial class Test
     internal static partial void Test(this StringBuilder builder, String product)
     {
         builder.Append(@"This is a test for tags [");
-        for (var i = 0; i < product.Tags.Length; i++)
+        for (var  i = 0; i < product.Tags.Length; i++ )
         {
-            if (product.Tags[i] == "awesome")
+            if ( product.Tags[i] == "awesome" )
             {
                 continue;
             }
-            else if (product.Tags[i] == "shoes")
+            else if ( product.Tags[i] == "shoes" )
             {
                 break;
             }
             builder.Append(i + 1);
             builder.Append(@". ");
-            builder.Append(product.Tags[i]);
+            builder.Append( product.Tags[i] );
         }
         builder.Append(@"] which is cool.");
     }

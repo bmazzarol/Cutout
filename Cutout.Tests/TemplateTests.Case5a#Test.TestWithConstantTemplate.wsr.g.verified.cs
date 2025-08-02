@@ -16,7 +16,7 @@ internal static partial class Test
 
 ");
         builder.Append(whitespace);
-        if (model.Value > 0)
+        if ( model.Value > 0 )
         {
             builder.Append(@"The result is positive.");
         }
