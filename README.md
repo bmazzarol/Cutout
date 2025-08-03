@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
 
-<img src="scissors-icon.png" alt="Tuxedo" width="150px"/>
+<img src="scissors-icon.png" alt="Cutout" width="150px"/>
 
 # Cutout
 
@@ -10,8 +10,8 @@
 [:books: **_Documentation_**](https://bmazzarol.github.io/Cutout)
 
 [![Nuget](https://img.shields.io/nuget/v/cutout)](https://www.nuget.org/packages/cutout/)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Tuxedo&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Tuxedo)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Tuxedo&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Tuxedo)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Cutout&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Cutout)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Cutout&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Cutout)
 [![CD Build](https://github.com/bmazzarol/Cutout/actions/workflows/cd-build.yml/badge.svg)](https://github.com/bmazzarol/Cutout/actions/workflows/cd-build.yml)
 [![Check Markdown](https://github.com/bmazzarol/Cutout/actions/workflows/check-markdown.yml/badge.svg)](https://github.com/bmazzarol/Cutout/actions/workflows/check-markdown.yml)
 
