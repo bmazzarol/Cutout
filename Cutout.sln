@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cutout.Sample", "Cutout.Sam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cutout.Tests", "Cutout.Tests\Cutout.Tests.csproj", "{EA3D7126-C006-47DE-AF88-AEC0F5FD485E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cutout.Docs", "Cutout.Docs\Cutout.Docs.csproj", "{8D842E29-21B3-4D8A-9EA5-581795C0132A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{EA3D7126-C006-47DE-AF88-AEC0F5FD485E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA3D7126-C006-47DE-AF88-AEC0F5FD485E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA3D7126-C006-47DE-AF88-AEC0F5FD485E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D842E29-21B3-4D8A-9EA5-581795C0132A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D842E29-21B3-4D8A-9EA5-581795C0132A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D842E29-21B3-4D8A-9EA5-581795C0132A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D842E29-21B3-4D8A-9EA5-581795C0132A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
