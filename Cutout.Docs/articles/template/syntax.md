@@ -12,9 +12,9 @@ capabilities of C#.
   string literal and written directly to the output.
 * **Expressions:** Use `{{ ... }}` to insert the value of any valid C#
   expression.
-***Blocks:** Use `{% ... %}` for control flow (e.g., if, for, foreach, while)
+* **Blocks:** Use `{% ... %}` for control flow (e.g., if, for, foreach, while)
   and function calls.
-***Whitespace Control:** Whitespace can be managed using the `-` character,
+* **Whitespace Control:** Whitespace can be managed using the `-` character,
   similar to Liquid. For example, `{%- ... -%}` trims whitespace around the
   block.
 
