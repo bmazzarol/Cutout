@@ -5,7 +5,7 @@
 
 # Cutout
 
-[:running: **_Getting Started_**](https://bmazzarol.github.io/Cutout/getting-started.html)
+[:running: **_Getting Started_**](https://bmazzarol.github.io/Cutout/articles/getting-started.html)
 |
 [:books: **_Documentation_**](https://bmazzarol.github.io/Cutout)
 
