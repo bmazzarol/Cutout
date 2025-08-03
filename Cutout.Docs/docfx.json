@@ -1,0 +1,37 @@
+{
+  "metadata": [],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "articles/**.md",
+          "articles/**.yml",
+          "toc.yml",
+          "*.md"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "postProcessors": [
+      "ExtractSearchIndex"
+    ],
+    "template": [
+      "default",
+      "modern",
+      "template"
+    ],
+    "output": "_site",
+    "globalMetadata": {
+      "_appName": "Cutout",
+      "_appLogoPath": "images/scissors-icon.png",
+      "_appFaviconPath": "images/favicon.ico",
+      "_appFooter": "Created By <a href='https://github.com/bmazzarol' target='blank'>Ben Mazzarol</a>"
+    }
+  }
+}

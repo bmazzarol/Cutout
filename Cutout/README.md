@@ -51,7 +51,7 @@ public static partial class MyTemplate
 
 ## Template Language
 
-Everything that is not between `{{` or `{@` and `}}` or `%}` is treated as a 
+Everything that is not between `{{` or `{@` and `}}` or `%}` is treated as a
 string literal.
 
 Any valid C# expression can be used in the template as it is compiled to C#
