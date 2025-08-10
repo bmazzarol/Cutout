@@ -109,7 +109,7 @@ internal static class Renderer
     )
     {
         writer.Write("builder.Append(@\"");
-        writer.Write(rawText.Value.ToString(template));
+        writer.Write(rawText.Value.ToString(template).Replace("\"", "\"\""));
         writer.WriteLine("\");");
 
         if (includeWhitespaceReceiver && rawText.ContainsNewLine)

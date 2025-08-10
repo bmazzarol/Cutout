@@ -37,6 +37,8 @@ public static partial class Examples
         {%- else -%}
         The result is negative.
         {%- end -%}
+
+        And " is escaped.
         """;
 
     [Template(ExampleTemplate)]
@@ -136,6 +138,7 @@ public class TemplateTests
             It has a conditional block,
 
             The result is positive.
+            And " is escaped.
             """,
             builder.ToString()
         );
