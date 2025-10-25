@@ -2,12 +2,12 @@
 
 The templates can also be stored in external files.
 
-To get started, create a '.editorconfig' file in your project.
+To get started, create a `.editorconfig` file in your project.
 
 In this, connect static files to valid methods in your project.
 
-For example, if you have a template called 'my-template.txt',
-you can connect it to the 'MyTemplate' method.
+For example, if you have a template called `my-template.txt`,
+you can connect it to the `MyTemplate` method.
 
 First, add the template to the project.
 
@@ -31,7 +31,7 @@ public static partial class Templates
 }
 ```
 
-Then link the 2 together in the '.editorconfig' file.
+Then link the 2 together in the `.editorconfig` file.
 
 ```editorconfig
 [my-template.txt]
