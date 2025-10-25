@@ -1,0 +1,6 @@
+[TemplateAttribute.Source.cs]
+embed = true
+[FileTemplateAttribute.Source.cs]
+embed = true
+[RenderUtilities.Source.cs]
+embed = true

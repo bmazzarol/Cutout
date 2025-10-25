@@ -12,10 +12,9 @@ internal static partial class Test
 {
     internal static void TestWithConstantTemplate(this StringBuilder builder, SomeModel model, string whitespace)
     {
-        builder.Append(@"This is an example of a template that is defined in a constant string.
+        builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(@"This is an example of a template that is defined in a constant string.
 
-");
-        builder.Append(whitespace);
+", whitespace));
         if ( model.Value > 0 )
         {
             builder.Append(@"The result is positive.");

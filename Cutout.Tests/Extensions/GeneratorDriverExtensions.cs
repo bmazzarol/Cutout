@@ -56,6 +56,11 @@ public static class GeneratorDriverExtensions
 
     internal static SettingsTask IgnoreStandardSupportCode(this SettingsTask settings)
     {
-        return settings.IgnoreGeneratedResult(x => x.HintName is "TemplateAttribute.g.cs");
+        return settings.IgnoreGeneratedResult(x =>
+            x.HintName
+                is "TemplateAttribute.g.cs"
+                    or "FileTemplateAttribute.g.cs"
+                    or "RenderUtilities.g.cs"
+        );
     }
 }

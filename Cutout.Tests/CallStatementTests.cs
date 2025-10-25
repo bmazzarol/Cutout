@@ -35,6 +35,15 @@ public static partial class CallTemplates
 
     [Template(CallExample4)]
     public static partial void Case4(this StringBuilder builder, Product product);
+
+    [Template(
+        """
+            This is an example more than one level of nesting,
+
+                {% call Case3(product) %}
+            """
+    )]
+    public static partial void Case5(this StringBuilder builder, Product product);
 }
 
 public sealed class CallStatementTests
@@ -67,6 +76,26 @@ public sealed class CallStatementTests
                 Awesome Shoes
                 awesome shoes
             ```
+            """,
+            builder.ToString()
+        );
+    }
+
+    [Fact(DisplayName = "A nested call statement with leading whitespace can used")]
+    public void Case3()
+    {
+        var builder = new StringBuilder();
+        builder.Case5(new CallTemplates.Product("Awesome Shoes"));
+        Assert.Equal(
+            """
+            This is an example more than one level of nesting,
+
+                This is an example with a call with leading whitespace,
+                ```
+                    The title in two calls,
+                    Awesome Shoes
+                    awesome shoes
+                ```
             """,
             builder.ToString()
         );

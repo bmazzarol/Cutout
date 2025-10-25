@@ -10,19 +10,11 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static void TestWithModel(this StringBuilder builder, SomeModel model, string whitespace)
+    internal static void TestWithModel(this StringBuilder builder, Test.SomeModel model, string whitespace)
     {
         builder.Append(@"This is a more complex example with a parameter ");
-        builder.Append( model.Value );
-        if (( model.Value ).ToString().IndexOf('\n') != -1)
-        {
-            builder.Append(whitespace);
-        }
+        builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace( model.Value , whitespace));
         builder.Append(@" and a second parameter ");
-        builder.Append( model.Text );
-        if (( model.Text ).ToString().IndexOf('\n') != -1)
-        {
-            builder.Append(whitespace);
-        }
+        builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace( model.Text , whitespace));
     }
 }

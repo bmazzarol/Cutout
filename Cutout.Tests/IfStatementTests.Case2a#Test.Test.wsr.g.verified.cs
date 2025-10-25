@@ -10,7 +10,7 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static void Test(this StringBuilder builder, String product, string whitespace)
+    internal static void Test(this StringBuilder builder, string product, string whitespace)
     {
         if ( product == "Awesome Shoes" )
         {

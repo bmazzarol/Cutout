@@ -10,16 +10,12 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static void Test(this StringBuilder builder, String product, string whitespace)
+    internal static void Test(this StringBuilder builder, string product, string whitespace)
     {
         builder.Append(@"This is a test for tags [");
         foreach (var  tag in product.Tags )
         {
-            builder.Append(tag);
-            if ((tag).ToString().IndexOf('\n') != -1)
-            {
-                builder.Append(whitespace);
-            }
+            builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(tag, whitespace));
             builder.Append(@"; ");
         }
         builder.Append(@"] which is cool.");

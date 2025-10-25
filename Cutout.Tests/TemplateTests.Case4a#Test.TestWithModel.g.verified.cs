@@ -10,7 +10,7 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static partial void TestWithModel(this StringBuilder builder, SomeModel model)
+    internal static partial void TestWithModel(this StringBuilder builder, Test.SomeModel model)
     {
         builder.Append(@"This is a more complex example with a parameter ");
         builder.Append( model.Value );

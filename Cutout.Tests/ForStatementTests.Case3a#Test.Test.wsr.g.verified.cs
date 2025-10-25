@@ -10,7 +10,7 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static void Test(this StringBuilder builder, String product, string whitespace)
+    internal static void Test(this StringBuilder builder, string product, string whitespace)
     {
         builder.Append(@"This is a test for tags [");
         for (var  i = 0; i < product.Tags.Length; i++ )
@@ -23,17 +23,9 @@ internal static partial class Test
             {
                 break;
             }
-            builder.Append(i + 1);
-            if ((i + 1).ToString().IndexOf('\n') != -1)
-            {
-                builder.Append(whitespace);
-            }
+            builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(i + 1, whitespace));
             builder.Append(@". ");
-            builder.Append( product.Tags[i] );
-            if (( product.Tags[i] ).ToString().IndexOf('\n') != -1)
-            {
-                builder.Append(whitespace);
-            }
+            builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace( product.Tags[i] , whitespace));
         }
         builder.Append(@"] which is cool.");
     }

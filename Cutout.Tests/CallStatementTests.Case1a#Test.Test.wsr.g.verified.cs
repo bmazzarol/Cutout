@@ -10,9 +10,9 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static void Test(this StringBuilder builder, String product, string whitespace)
+    internal static void Test(this StringBuilder builder, string product, string whitespace)
     {
         builder.Append(@"Some text before ");
-        Case2(builder, product);
+        Case2(builder, product, whitespace);
     }
 }
