@@ -108,13 +108,18 @@ internal static class Renderer
         bool includeWhitespaceReceiver
     )
     {
-        writer.Write("builder.Append(@\"");
-        writer.Write(rawText.Value.ToString(template).Replace("\"", "\"\""));
-        writer.WriteLine("\");");
-
+        var renderable = rawText.Value.ToString(template).Replace("\"", "\"\"");
         if (includeWhitespaceReceiver && rawText.ContainsNewLine)
         {
-            writer.WriteLine("builder.Append(whitespace);");
+            writer.Write("builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(@\"");
+            writer.Write(renderable);
+            writer.WriteLine("\", whitespace));");
+        }
+        else
+        {
+            writer.Write("builder.Append(@\"");
+            writer.Write(renderable);
+            writer.WriteLine("\");");
         }
     }
 
@@ -125,21 +130,18 @@ internal static class Renderer
         bool includeWhitespaceReceiver
     )
     {
-        writer.Write("builder.Append(");
-        writer.Write(renderableExpression.Value.ToString(template));
-        writer.WriteLine(");");
-
+        var renderable = renderableExpression.Value.ToString(template);
         if (includeWhitespaceReceiver)
         {
-            writer.Write("if ((");
-            writer.Write(renderableExpression.Value.ToString(template));
-            writer.WriteLine(").ToString().IndexOf('\\n') != -1)");
-            writer.WriteLine("{");
-            using (writer.Indent())
-            {
-                writer.WriteLine("builder.Append(whitespace);");
-            }
-            writer.WriteLine("}");
+            writer.Write("builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(");
+            writer.Write(renderable);
+            writer.WriteLine(", whitespace));");
+        }
+        else
+        {
+            writer.Write("builder.Append(");
+            writer.Write(renderable);
+            writer.WriteLine(");");
         }
     }
 
@@ -197,11 +199,26 @@ internal static class Renderer
             writer.Write(", ");
             writer.Write(parameter);
         }
-        if (!string.IsNullOrEmpty(whitespace))
+
+        var hasWhitespace = whitespace?.Length > 0;
+        if (includeWhitespaceReceiver || hasWhitespace)
         {
-            writer.Write(includeWhitespaceReceiver ? ", whitespace + \"" : ",\"");
-            writer.Write(whitespace);
-            writer.Write("\"");
+            writer.Write(", ");
+            if (includeWhitespaceReceiver)
+            {
+                writer.Write("whitespace");
+                if (hasWhitespace)
+                {
+                    writer.Write(" + ");
+                }
+            }
+
+            if (hasWhitespace)
+            {
+                writer.Write("\"");
+                writer.Write(whitespace);
+                writer.Write("\"");
+            }
         }
         writer.WriteLine(");");
     }

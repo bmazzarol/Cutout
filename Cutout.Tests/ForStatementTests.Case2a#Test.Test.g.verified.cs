@@ -10,7 +10,7 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static partial void Test(this StringBuilder builder, String product)
+    internal static partial void Test(this StringBuilder builder, string product)
     {
         builder.Append(@"This is a test for tags [");
         while ( i < product.Tags.Length )

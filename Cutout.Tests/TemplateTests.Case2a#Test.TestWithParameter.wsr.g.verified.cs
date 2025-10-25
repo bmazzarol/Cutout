@@ -10,13 +10,9 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static void TestWithParameter(this StringBuilder builder, Int32 param, string whitespace)
+    internal static void TestWithParameter(this StringBuilder builder, int param, string whitespace)
     {
         builder.Append(@"This is a more complex example with a parameter: ");
-        builder.Append( param );
-        if (( param ).ToString().IndexOf('\n') != -1)
-        {
-            builder.Append(whitespace);
-        }
+        builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace( param , whitespace));
     }
 }

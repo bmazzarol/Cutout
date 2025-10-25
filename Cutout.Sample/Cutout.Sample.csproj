@@ -11,4 +11,7 @@
       ReferenceOutputAssembly="false"
     />
   </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="SampleTemplate.cs.liquid" />
+  </ItemGroup>
 </Project>

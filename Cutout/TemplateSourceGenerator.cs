@@ -1,9 +1,12 @@
 using System.CodeDom.Compiler;
+using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Pasted;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Cutout;
@@ -21,16 +24,37 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(ctx =>
         {
-            ctx.AddSource("TemplateAttribute.g", TemplateAttributeSourceCode);
+            ctx.AddSource("TemplateAttribute.g", EmbeddedFiles.TemplateAttribute_Source);
+            ctx.AddSource("FileTemplateAttribute.g", EmbeddedFiles.FileTemplateAttribute_Source);
+            ctx.AddSource("RenderUtilities.g", EmbeddedFiles.RenderUtilities_Source);
         });
 
-        var templateProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
+        // attribute-based template methods
+        var attributeTemplateProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
             "Cutout.TemplateAttribute",
             IsTemplateMethod,
             BuildTemplateDetails
         );
 
-        context.RegisterSourceOutput(templateProvider, GenerateTemplate);
+        context.RegisterSourceOutput(attributeTemplateProvider, GenerateTemplate);
+
+        // external config-based template methods
+        var embeddedFiles = context.AdditionalTextsProvider.Select((file, _) => file).Collect();
+        var configProvider = context.AnalyzerConfigOptionsProvider.Select((options, _) => options);
+        var fileTemplateAttributeProvider = context
+            .SyntaxProvider.ForAttributeWithMetadataName(
+                "Cutout.FileTemplateAttribute",
+                IsTemplateMethod,
+                (x, _) => x
+            )
+            .Collect();
+
+        var fileTemplateProvider = embeddedFiles
+            .Combine(configProvider)
+            .Combine(fileTemplateAttributeProvider)
+            .SelectMany(BuildTemplateDetailsFromFile);
+
+        context.RegisterSourceOutput(fileTemplateProvider, GenerateTemplate);
     }
 
     private static bool IsTemplateMethod(SyntaxNode syntax, CancellationToken token)
@@ -47,6 +71,70 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
             );
     }
 
+    private static IEnumerable<TemplateMethodDetails> BuildTemplateDetailsFromFile(
+        (
+            (ImmutableArray<AdditionalText> Files, AnalyzerConfigOptionsProvider Options) Static,
+            ImmutableArray<GeneratorAttributeSyntaxContext> Methods
+        ) ctx,
+        CancellationToken token
+    )
+    {
+        Dictionary<
+            string,
+            (
+                SemanticModel semanticModel,
+                MethodDeclarationSyntax methodDeclarationSyntax,
+                IMethodSymbol methodSymbol
+            )
+        > methodLookup = new(StringComparer.Ordinal);
+        foreach (var context in ctx.Methods)
+        {
+            if (context.TargetNode is not MethodDeclarationSyntax mds)
+                continue;
+
+            var methodSymbol = context.SemanticModel.GetDeclaredSymbol(mds, token);
+
+            if (methodSymbol is null)
+                continue;
+
+            var ns = methodSymbol.ContainingNamespace?.ToDisplayString();
+            var @class = methodSymbol.ContainingType.Name;
+            var fullName = $"{ns}.{@class}.{methodSymbol.Name}";
+            methodLookup.Add(fullName, (context.SemanticModel, mds, methodSymbol));
+        }
+
+        foreach (var file in ctx.Static.Files)
+        {
+            if (file.GetText(token)?.ToString() is not { } templateText)
+            {
+                continue;
+            }
+
+            var options = ctx.Static.Options.GetOptions(file);
+
+            if (
+                !options.TryGetValue("template_method", out var method)
+                || string.IsNullOrWhiteSpace(method)
+            )
+            {
+                continue;
+            }
+
+            if (!methodLookup.TryGetValue(method, out var methodContext))
+            {
+                continue;
+            }
+
+            var details = BuildTemplateDetailsFromSyntax(
+                methodContext.semanticModel,
+                methodContext.methodDeclarationSyntax,
+                methodContext.methodSymbol,
+                templateText
+            );
+            yield return details;
+        }
+    }
+
     private static TemplateMethodDetails BuildTemplateDetails(
         GeneratorAttributeSyntaxContext ctx,
         CancellationToken token
@@ -54,12 +142,27 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
     {
         var methodDeclarationSyntax = (MethodDeclarationSyntax)ctx.TargetNode;
 
-        // get the namespace
         var methodSymbol = ctx.SemanticModel.GetDeclaredSymbol(
             methodDeclarationSyntax,
             cancellationToken: token
         )!;
-        var ns = methodSymbol.ContainingNamespace.ToDisplayString();
+
+        return BuildTemplateDetailsFromSyntax(
+            ctx.SemanticModel,
+            methodDeclarationSyntax,
+            methodSymbol,
+            template: null
+        );
+    }
+
+    private static TemplateMethodDetails BuildTemplateDetailsFromSyntax(
+        SemanticModel semanticModel,
+        MethodDeclarationSyntax methodDeclarationSyntax,
+        IMethodSymbol methodSymbol,
+        string? template
+    )
+    {
+        var ns = methodSymbol.ContainingNamespace?.ToDisplayString();
 
         // get all usings
         var usings = methodDeclarationSyntax
@@ -81,7 +184,10 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
         );
 
         // get the attribute details
-        var attributeParts = new TemplateAttributeParts(methodDetails, ctx.SemanticModel);
+        var attributeParts =
+            template is null || string.IsNullOrWhiteSpace(template)
+                ? new TemplateAttributeParts(methodDetails, semanticModel)
+                : new TemplateAttributeParts(template);
 
         return new TemplateMethodDetails(
             Namespace: ns,
@@ -124,7 +230,6 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
             var indentedWriter = new IndentedTextWriter(writer, "    ");
 
             WriteTemplateMethod(indentedWriter, details, includeWhitespaceReceiver: false);
-
             context.AddSource(
                 $"{details.ClassDetails.Name}.{details.MethodDetails.Name}.g.cs",
                 SourceText.From(writer.ToString(), Encoding.UTF8)

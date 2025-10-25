@@ -10,7 +10,7 @@ namespace <global namespace>;
 
 internal static partial class Test
 {
-    internal static partial void TestWithTwoParameters(this StringBuilder builder, Int32 param, String param2)
+    internal static partial void TestWithTwoParameters(this StringBuilder builder, int param, string param2)
     {
         builder.Append(@"This is a more complex example with a parameter ");
         builder.Append( param );

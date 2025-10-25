@@ -30,7 +30,7 @@ public sealed partial class TemplateSourceGenerator
             for (var index = 0; index < model.MethodDetails.MethodSymbol.Parameters.Length; index++)
             {
                 var parameter = model.MethodDetails.MethodSymbol.Parameters[index];
-                writer.Write(parameter.Type.Name);
+                writer.Write(parameter.Type.ToDisplayString());
                 writer.Write(" ");
                 writer.Write(parameter.Name);
 
@@ -94,8 +94,9 @@ public sealed partial class TemplateSourceGenerator
         }
 
         Syntax? lastSyntax = null;
-        foreach (var syntax in model.AttributeDetails.Syntaxes)
+        for (var i = 0; i < model.AttributeDetails.Syntaxes.Count; i++)
         {
+            var syntax = model.AttributeDetails.Syntaxes[i];
             writer.WriteSyntax(template, syntax, lastSyntax, includeWhitespaceReceiver);
             lastSyntax = syntax;
         }

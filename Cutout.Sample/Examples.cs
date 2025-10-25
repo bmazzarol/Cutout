@@ -32,4 +32,11 @@ public static partial class Examples
     public static partial void Test3(this StringBuilder builder, string parameter);
 
     #endregion
+
+    #region ExampleWithExternalFileTemplate
+
+    [FileTemplate]
+    public static partial void Test4(this StringBuilder builder, string parameter);
+
+    #endregion
 }
