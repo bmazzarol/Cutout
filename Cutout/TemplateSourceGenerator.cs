@@ -23,14 +23,11 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx =>
-            ctx.AddSource("TemplateAttribute.g", EmbeddedFiles.TemplateAttribute_Source)
-        );
-        context.RegisterPostInitializationOutput(ctx =>
-            ctx.AddSource("FileTemplateAttribute.g", EmbeddedFiles.FileTemplateAttribute_Source)
-        );
-        context.RegisterPostInitializationOutput(ctx =>
-            ctx.AddSource("RenderUtilities.g", EmbeddedFiles.RenderUtilities_Source)
-        );
+        {
+            ctx.AddSource("TemplateAttribute.g", EmbeddedFiles.TemplateAttribute_Source);
+            ctx.AddSource("FileTemplateAttribute.g", EmbeddedFiles.FileTemplateAttribute_Source);
+            ctx.AddSource("RenderUtilities.g", EmbeddedFiles.RenderUtilities_Source);
+        });
 
         // attribute-based template methods
         var attributeTemplateProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
