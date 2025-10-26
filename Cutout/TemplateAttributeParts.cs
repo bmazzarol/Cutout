@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Cutout;
 
@@ -43,6 +44,7 @@ internal sealed record TemplateAttributeParts
         });
     }
 
+    [ExcludeFromCodeCoverage]
     public bool Equals(TemplateAttributeParts? other)
     {
         if (other is null)
@@ -51,6 +53,7 @@ internal sealed record TemplateAttributeParts
             || string.Equals(Template, other.Template, StringComparison.Ordinal);
     }
 
+    [ExcludeFromCodeCoverage]
     public override int GetHashCode()
     {
         return Template != null ? StringComparer.Ordinal.GetHashCode(Template) : 0;

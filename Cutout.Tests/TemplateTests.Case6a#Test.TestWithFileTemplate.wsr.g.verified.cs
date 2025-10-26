@@ -12,10 +12,21 @@ internal static partial class Test
 {
     internal static void TestWithFileTemplate(this StringBuilder builder, string name, string whitespace)
     {
-        builder.Append(@"# Hello ");
+        var  containsBen = name.Contains("Ben") ;
+        builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(@"
+# Hello ", whitespace));
         builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace( name , whitespace));
         builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(@"
 
-This is a test!", whitespace));
+This is a test!
+
+", whitespace));
+        if ( containsBen )
+        {
+            builder.Append(@"Hang in there baby!");
+        }
+        builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(@"
+    ", whitespace));
+        childPart(builder, name, whitespace + "    ");
     }
 }

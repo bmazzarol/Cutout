@@ -189,13 +189,30 @@ public class TemplateTests
     [Fact(DisplayName = "Case6 produces the expected source")]
     public Task Case6a() =>
         """
+            [StringTemplate("this is a child part from {{ name }}")]
+            public static partial void ChildPart(this StringBuilder builder, string name);
+
             [FileTemplate]
             public static partial void TestWithFileTemplate(this StringBuilder builder, string name);
             """.VerifyTemplate(
             [
                 new TestAdditionalFile(
                     "test.txt",
-                    SourceText.From("# Hello {{ name }}\n\nThis is a test!")
+                    SourceText.From(
+                        """
+                        {% var containsBen = name.Contains("Ben") %}
+                        # Hello {{ name }}
+
+                        This is a test!
+
+                        {% if containsBen -%}
+                        Hang in there baby!
+                        {%- end -%}
+
+                            {% call childPart(name) -%}
+
+                        """
+                    )
                 ),
             ],
             generatorDriver =>
