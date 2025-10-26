@@ -1,5 +1,9 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Cutout.Tests.Extensions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Cutout.Tests;
 
@@ -46,6 +50,9 @@ public static partial class Examples
         this StringBuilder builder,
         SomeModel model
     );
+
+    [FileTemplate]
+    public static partial void TestWithFileTemplate(this StringBuilder builder, string name);
 }
 
 public class TemplateTests
@@ -162,4 +169,64 @@ public class TemplateTests
                 SomeModel model
             );
             """.VerifyTemplate();
+
+    [Fact(DisplayName = "A file template can be used")]
+    public void Case6()
+    {
+        var builder = new StringBuilder();
+        builder.TestWithFileTemplate("Ben");
+        Assert.Equal(
+            """
+            # Hello Ben
+
+            This is a test!
+
+            """,
+            builder.ToString()
+        );
+    }
+
+    [Fact(DisplayName = "Case6 produces the expected source")]
+    public Task Case6a() =>
+        """
+            [FileTemplate]
+            public static partial void TestWithFileTemplate(this StringBuilder builder, string name);
+            """.VerifyTemplate(
+            [
+                new TestAdditionalFile(
+                    "test.txt",
+                    SourceText.From("# Hello {{ name }}\n\nThis is a test!")
+                ),
+            ],
+            generatorDriver =>
+                generatorDriver.WithUpdatedAnalyzerConfigOptions(
+                    new TestAnalyzerConfigOptionsProvider()
+                )
+        );
+
+    private class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    {
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) =>
+            throw new NotSupportedException();
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) =>
+            new TestAnalyzerConfigOptions();
+
+        public override AnalyzerConfigOptions GlobalOptions => throw new NotSupportedException();
+
+        private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+        {
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            {
+                if (string.Equals(key, "template_method", StringComparison.Ordinal))
+                {
+                    value = "<global namespace>.Test.TestWithFileTemplate";
+                    return true;
+                }
+
+                value = null;
+                return false;
+            }
+        }
+    }
 }

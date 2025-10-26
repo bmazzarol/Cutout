@@ -8,7 +8,7 @@ namespace Cutout.Tests.Extensions;
 
 public sealed class TestAdditionalFile(string path, SourceText text) : AdditionalText
 {
-    public override string Path => $"<global namespace>.{path}";
+    public override string Path => path;
 
     public override SourceText GetText(CancellationToken cancellationToken)
     {
@@ -20,7 +20,8 @@ public static class GeneratorDriverExtensions
 {
     internal static GeneratorDriver BuildDriver(
         this string? source,
-        ImmutableArray<AdditionalText> additionalTexts
+        ImmutableArray<AdditionalText> additionalTexts,
+        Func<CSharpGeneratorDriver, GeneratorDriver>? configure = null
     )
     {
         var compilation = CSharpCompilation.Create(
@@ -33,12 +34,15 @@ public static class GeneratorDriverExtensions
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
         var generator = new TemplateSourceGenerator();
-        var driver = CSharpGeneratorDriver.Create(generator).AddAdditionalTexts(additionalTexts);
-        return driver.RunGenerators(compilation);
+        var driver = CSharpGeneratorDriver.Create(generator);
+        var generatorDriver = configure?.Invoke(driver) ?? driver;
+        return generatorDriver.AddAdditionalTexts(additionalTexts).RunGenerators(compilation);
     }
 
     internal static Task VerifyTemplate(
         this string? source,
+        ImmutableArray<AdditionalText>? additionalTexts = null,
+        Func<CSharpGeneratorDriver, GeneratorDriver>? configure = null,
         [CallerFilePath] string sourceFile = ""
     )
     {
@@ -50,7 +54,7 @@ public static class GeneratorDriverExtensions
             {
                {{source}}
             }
-            """.BuildDriver([]);
+            """.BuildDriver(additionalTexts ?? [], configure);
         return Verify(driver, sourceFile: sourceFile).IgnoreStandardSupportCode();
     }
 

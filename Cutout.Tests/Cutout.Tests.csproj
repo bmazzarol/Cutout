@@ -19,4 +19,7 @@
       ReferenceOutputAssembly="true"
     />
   </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="test-template.md" />
+  </ItemGroup>
 </Project>

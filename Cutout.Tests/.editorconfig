@@ -1,0 +1,2 @@
+[test-template.md]
+template_method = Cutout.Tests.Examples.TestWithFileTemplate
