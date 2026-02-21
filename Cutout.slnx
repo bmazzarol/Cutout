@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Cutout.Docs/Cutout.Docs.csproj" />
+  <Project Path="Cutout.Sample/Cutout.Sample.csproj" />
+  <Project Path="Cutout.Tests/Cutout.Tests.csproj" />
+  <Project Path="Cutout/Cutout.csproj" />
+</Solution>
