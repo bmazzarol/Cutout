@@ -1,7 +1,9 @@
 # Getting Started
 
 To use this library, simply include `Cutout.dll` in your project or grab
-it from [NuGet](https://www.nuget.org/packages/Cutout/), and add a reference to it.
+it from
+[NuGet](https://www.nuget.org/packages/Cutout/)
+, and add a reference to it.
 
 ```xml
 <ItemGroup>
