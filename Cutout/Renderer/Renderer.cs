@@ -194,10 +194,10 @@ internal static class Renderer
     {
         writer.Write(callStatement.Name);
         writer.Write("(builder");
-        foreach (var parameter in callStatement.Parameters)
+        if (!string.IsNullOrEmpty(callStatement.Arguments))
         {
             writer.Write(", ");
-            writer.Write(parameter);
+            writer.Write(callStatement.Arguments);
         }
 
         var hasWhitespace = whitespace?.Length > 0;
