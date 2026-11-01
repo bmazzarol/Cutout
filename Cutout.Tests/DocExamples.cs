@@ -72,8 +72,8 @@ public static partial class DocExamples
     )]
     public static partial void BreakContinueExample(this StringBuilder builder, Product product);
 
-    [Template("This is a very simple example with a {{parameter}} parameter")]
-    public static partial void SimpleExample(this StringBuilder builder, string parameter);
+    [Template("A template with a {{parameter}} parameter")]
+    public static partial void ValueExample(this StringBuilder builder, string parameter);
 
     [Template(
         """
@@ -146,7 +146,7 @@ public class DocExampleTests
         lines.Add($"break/continue  = {Show(sb)}");
 
         sb.Clear();
-        DocExamples.SimpleExample(sb, "value");
+        DocExamples.ValueExample(sb, "value");
         lines.Add($"simple          = {Show(sb)}");
         sb.Clear();
         DocExamples.MultiLineExample(sb, "value");

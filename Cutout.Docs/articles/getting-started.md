@@ -18,14 +18,14 @@ available in the template.
 ```c#
 using System.Text;
 
-[Cutout.Template("This is a very simple example with a {{parameter}} parameter")]
+[Cutout.Template("A template with a {{parameter}} parameter")]
 public static partial void Test(this StringBuilder builder, string parameter);
 ```
 
 With `parameter` set to `value` the builder contains,
 
 ```text
-This is a very simple example with a value parameter
+A template with a value parameter
 ```
 
 The template has to be a compile-time constant, so define it as a `const` field
