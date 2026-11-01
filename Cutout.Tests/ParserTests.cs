@@ -872,13 +872,13 @@ public class ParserTests
     [Fact(DisplayName = "A comma inside an interpolation hole is preserved in the argument span")]
     public void Case45()
     {
-        const string template = "{% call function($\"a,{b}\", 2) %}";
+        const string template = "{% call function($\"{new { Value = \"a,b\" } }\", 2) %}";
         var tokens = Lexer.Tokenize(template);
         var result = Parser.Parse(tokens, template);
         var item = Assert.Single(result);
         var callStatement = Assert.IsType<Syntax.CallStatement>(item);
         Assert.Equal("function", callStatement.Name);
-        Assert.Equal("$\"a,{b}\", 2", callStatement.Arguments);
+        Assert.Equal("$\"{new { Value = \"a,b\" } }\", 2", callStatement.Arguments);
     }
 
     [Fact(DisplayName = "A comma inside brace depth is preserved in the argument span")]

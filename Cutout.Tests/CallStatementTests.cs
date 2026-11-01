@@ -63,6 +63,13 @@ public sealed class CallStatementTests
             public static partial void Test(this StringBuilder builder, string product);
             """.VerifyTemplate();
 
+    [Fact(DisplayName = "A call argument with a comma inside an interpolation hole is preserved")]
+    public Task Case1b() =>
+        """
+            [Template("{% call Case2($\"{new { Value = \"a,b\" } }\") %}")]
+            public static partial void Test(this StringBuilder builder);
+            """.VerifyTemplate();
+
     [Fact(DisplayName = "A call statement with leading whitespace can used")]
     public void Case2()
     {
