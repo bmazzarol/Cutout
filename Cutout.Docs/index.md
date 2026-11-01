@@ -1,23 +1,14 @@
-<!-- markdownlint-disable MD033 MD041 -->
-<div align="center">
-
-<img src="images/scissors-icon.png" alt="Cutout" width="150px"/>
-
 # Cutout
 
----
+![Cutout](images/scissors-icon.png)
 
-[![Nuget](https://img.shields.io/nuget/v/Cutout)](https://www.nuget.org/packages/Cutout/)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Cutout&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Cutout)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Cutout&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Cutout)
-[![CD Build](https://github.com/bmazzarol/Cutout/actions/workflows/cd-build.yml/badge.svg)](https://github.com/bmazzarol/Cutout/actions/workflows/cd-build.yml)
-[![Check Markdown](https://github.com/bmazzarol/Cutout/actions/workflows/check-markdown.yml/badge.svg)](https://github.com/bmazzarol/Cutout/actions/workflows/check-markdown.yml)
+**Templating that costs nothing at runtime.**
 
-Zero cost :muscle: source generated templating for .NET
+A source generator that renders Liquid style templates into a StringBuilder at compile time, so generated code keeps its indentation without a template engine dependency.
 
----
-
-</div>
+```shell
+dotnet add package Cutout
+```
 
 ## Why?
 
