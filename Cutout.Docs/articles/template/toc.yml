@@ -1,6 +1,8 @@
-﻿items:
+items:
   - name: Syntax
     href: syntax.md
+  - name: Var
+    href: var.md
   - name: If/Else
     href: if.md
   - name: For
@@ -9,13 +11,9 @@
     href: foreach.md
   - name: While
     href: while.md
+  - name: Break And Continue
+    href: break-continue.md
   - name: Call
     href: call.md
-  - name: Var
-    href: var.md
-  - name: Continue
-    href: continue.md
-  - name: Break
-    href: break.md
   - name: Return
     href: return.md

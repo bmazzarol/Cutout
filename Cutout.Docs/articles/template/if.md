@@ -1,7 +1,7 @@
-﻿# If/Else Statement
+# If/Else Statement
 
-The `if` statement allows conditional rendering in templates.
-The condition must be a valid C# boolean expression.
+`if` renders a block based on a C# boolean expression. `elseif` and `else` are
+supported; Liquid's `unless` is not.
 
 ## Syntax
 
@@ -18,9 +18,29 @@ The condition must be a valid C# boolean expression.
 ## Example
 
 ```c#
-{% if name == "Bob" %}
-Hello Bob
-{% else %}
-Hello {{ name }}
-{% end %}
+private const string Template = """
+    {% if product == "Awesome Shoes" -%}
+    These shoes are awesome!
+    {%- else -%}
+    These shoes are not awesome!
+    {%- end -%}
+    """;
+
+[Cutout.Template(Template)]
+public static partial void Test(this StringBuilder builder, string product);
 ```
+
+With `product` set to `Awesome Shoes` the builder contains,
+
+```text
+These shoes are awesome!
+```
+
+With `product` set to `Cool Shoes` it contains,
+
+```text
+These shoes are not awesome!
+```
+
+The condition is compiled straight into an `if`, so there is no evaluation cost
+at runtime.

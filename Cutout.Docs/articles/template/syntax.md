@@ -1,10 +1,9 @@
 ﻿# Template Definition
 
 Cutout templates use a syntax inspired
-by [Liquid](https://shopify.github.io/liquid/), but support C# expressions
-instead of the custom language that Liquid uses. This allows you to write
-templates that are both powerful and easy to read, while leveraging the full
-capabilities of C#.
+by [Liquid](https://shopify.github.io/liquid/), but use C# expressions instead
+of the custom language that Liquid uses. The template reads like Liquid and the
+expressions behave like C#.
 
 ## Syntax Overview
 
@@ -46,16 +45,18 @@ Cutout supports whitespace control similar to
 * The same applies to output tags: `{{ ... }}`, `{{- ... }}`, `{{ ... -}}`,
   `{{- ... -}}`.
 
-This allows for fine-grained control over the formatting of generated code,
-making it easier to maintain correct indentation and spacing.
+This controls the formatting of the generated code, which is what keeps the
+indentation of the output correct.
 
 ## Deviations from Liquid Standard
 <!-- markdownlint-disable MD013 -->
-| Feature            | Cutout Implementation                           | Liquid Standard                                   |
-|--------------------|-------------------------------------------------|---------------------------------------------------|
-| End Block          | Single `{% end %}` for all blocks               | Specific `{% endif %}`, `{% endfor %}` etc.       |
-| Expressions        | Must be valid C# expressions                    | Liquid expressions                                |
-| Function Calls     | `{% call Function(args) %}`                     | Not supported in Liquid                           |
-| Loop Syntax        | C# style (`for`, `foreach`, `while`)            | Liquid style (`for ... in ...`)                   |
-| Whitespace Control | Same as Liquid (`-` modifier)                   | Liquid whitespace control                         |
-| Conditionals       | Only one conditional statement (`if`) supported | Multiple conditional types (`if`, `unless`, etc.) |
+| Feature            |
+| Cutout Implementation                |
+| Liquid Standard                             |
+|--------------------|--------------------------------------|---------------------------------------------|
+| End Block          | Single `{% end %}` for all blocks    | Specific `{% endif %}`, `{% endfor %}` etc. |
+| Expressions        | Must be valid C# expressions         | Liquid expressions                          |
+| Function Calls     | `{% call Function(args) %}`          | Not supported in Liquid                     |
+| Loop Syntax        | C# style (`for`, `foreach`, `while`) | Liquid style (`for ... in ...`)             |
+| Whitespace Control | Same as Liquid (`-` modifier)        | Liquid whitespace control                   |
+| Conditionals       | `if`, `elseif` and `else`            | Liquid also has `unless` and others         |

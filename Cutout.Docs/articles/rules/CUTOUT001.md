@@ -1,9 +1,24 @@
 # CUTOUT001 - Invalid Template
 
-The template used is not valid in some way. This could be due to a syntax
-error, or it could be that the template is not compatible with the Cutout
-version of the liquid language.
+The template could not be parsed. The diagnostic is reported on the template
+method and reads,
 
-The error will indicate the line number and position where the parser
-encountered the issue. The user should review the template string and
-resolve the problem.
+```text
+CUTOUT001: Failed to parse template for Templates.Test: <parser message>
+```
+
+Common causes are a block without an `end`, an expression inside an interpolation
+hole that does not compile, or a Liquid feature that Cutout does not implement,
+such as filters.
+
+```c#
+[Cutout.Template("""
+    {% if product.Title %}
+    {{ product.Title }}
+    """)]
+public static partial void Test(this StringBuilder builder, Product product);
+```
+
+The `if` block above is never closed, so the generator reports CUTOUT001 instead
+of generating code. Fix the template; see [Template Syntax](../template/syntax.md)
+for the supported statements.
