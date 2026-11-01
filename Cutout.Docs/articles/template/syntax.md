@@ -49,14 +49,12 @@ This controls the formatting of the generated code, which is what keeps the
 indentation of the output correct.
 
 ## Deviations from Liquid Standard
-<!-- markdownlint-disable MD013 -->
-| Feature            |
-| Cutout Implementation                |
-| Liquid Standard                             |
-|--------------------|--------------------------------------|---------------------------------------------|
-| End Block          | Single `{% end %}` for all blocks    | Specific `{% endif %}`, `{% endfor %}` etc. |
-| Expressions        | Must be valid C# expressions         | Liquid expressions                          |
-| Function Calls     | `{% call Function(args) %}`          | Not supported in Liquid                     |
-| Loop Syntax        | C# style (`for`, `foreach`, `while`) | Liquid style (`for ... in ...`)             |
-| Whitespace Control | Same as Liquid (`-` modifier)        | Liquid whitespace control                   |
-| Conditionals       | `if`, `elseif` and `else`            | Liquid also has `unless` and others         |
+
+| Feature            | Cutout                                   | Liquid                          |
+|--------------------|------------------------------------------|---------------------------------|
+| End block          | one `{% end %}` closes every block       | `{% endif %}`, `{% endfor %}`   |
+| Expressions        | any valid C# expression                  | Liquid's own language           |
+| Function calls     | `{% call Function(args) %}`              | not supported                   |
+| Loop syntax        | `for`, `foreach`, `while`                | `for ... in ...`                |
+| Whitespace control | `-` modifier, as in Liquid               | `-` modifier                    |
+| Conditionals       | `if`, `elseif`, `else`                   | also has `unless` and others    |
