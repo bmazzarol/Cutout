@@ -76,7 +76,7 @@ Three deviations from Liquid:
 
 ## See also
 
-- [Getting started](https://bmazzarol.github.io/Cutout/getting-started.html)
+- [Getting started](https://bmazzarol.github.io/Cutout/articles/getting-started.html)
 - [Template syntax](https://bmazzarol.github.io/Cutout/articles/template/syntax.html)
 - [Analyser rules](https://bmazzarol.github.io/Cutout/articles/rules/CUTOUT001.html)
 
