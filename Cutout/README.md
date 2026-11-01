@@ -12,7 +12,7 @@ as fast as possible to not impact users in large repositories.
 
 The recommended approach is to use
 the [IndentedTextWriter](https://learn.microsoft.com/en-us/dotnet/api/system.codedom.compiler.indentedtextwriter?view=net-9.0)
-. This class is simple to use, but is low level.
+. The class works, but it is low level: every indentation level is manual.
 
 A standard template engine is a better approach from a code maintenance
 perspective, but the performance is not as good.
