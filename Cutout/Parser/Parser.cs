@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Cutout;
+﻿namespace Cutout;
 
 internal static partial class Parser
 {
@@ -269,71 +267,12 @@ internal static partial class Parser
             );
         }
 
-        var parameters = ParseParameters(paramString);
-        syntax = new Syntax.CallStatement(functionName, parameters ?? []);
+        // The whole argument span is captured and re-emitted verbatim between
+        // the builder and the whitespace argument; there is no per-parameter
+        // split, so quotes, interpolation holes and brace depth never need
+        // tracking here.
+        syntax = new Syntax.CallStatement(functionName, paramString.Trim());
         return true;
-    }
-
-    private static List<string>? ParseParameters(string paramString)
-    {
-        List<string>? parameters = null;
-        var sb = new StringBuilder();
-        var parenDepth = 0;
-        var inQuotes = false;
-        var quoteChar = '\0';
-        for (var i = 0; i < paramString.Length; i++)
-        {
-            var c = paramString[i];
-            if (c is '"' or '\'' && (i == 0 || paramString[i - 1] != '\\'))
-            {
-                if (!inQuotes)
-                {
-                    inQuotes = true;
-                    quoteChar = c;
-                }
-                else if (quoteChar == c)
-                {
-                    inQuotes = false;
-                }
-                sb.Append(c);
-            }
-            else
-            {
-                switch (inQuotes)
-                {
-                    case false when c == '(':
-                        parenDepth++;
-                        sb.Append(c);
-                        break;
-                    case false when c == ')':
-                        parenDepth--;
-                        sb.Append(c);
-                        break;
-                    case false when parenDepth == 0 && c == ',':
-                        AddParameter();
-                        sb.Clear();
-                        break;
-                    default:
-                        sb.Append(c);
-                        break;
-                }
-            }
-        }
-        if (sb.Length > 0)
-        {
-            AddParameter();
-        }
-        return parameters;
-
-        void AddParameter()
-        {
-            parameters ??= [];
-            var parameter = sb.ToString().Trim();
-            if (!string.IsNullOrWhiteSpace(parameter))
-            {
-                parameters.Add(parameter);
-            }
-        }
     }
 
     private static void ParseConditionalStatement(

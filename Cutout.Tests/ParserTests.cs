@@ -305,17 +305,7 @@ public class ParserTests
         var item = Assert.Single(result);
         var callStatement = Assert.IsType<Syntax.CallStatement>(item);
         Assert.Equal("function", callStatement.Name);
-        Assert.Collection(
-            callStatement.Parameters,
-            param =>
-            {
-                Assert.Equal("arg1", param);
-            },
-            param =>
-            {
-                Assert.Equal("arg2", param);
-            }
-        );
+        Assert.Equal("arg1, arg2", callStatement.Arguments);
     }
 
     [Fact(DisplayName = "A call statement can be parsed (no arguments)")]
@@ -328,7 +318,7 @@ public class ParserTests
         var item = Assert.Single(result);
         var callStatement = Assert.IsType<Syntax.CallStatement>(item);
         Assert.Equal("function", callStatement.Name);
-        Assert.Empty(callStatement.Parameters);
+        Assert.Equal("", callStatement.Arguments);
     }
 
     [Fact(DisplayName = "A call statement function part throws an error")]
@@ -850,9 +840,7 @@ public class ParserTests
         var item = Assert.Single(result);
         var callStatement = Assert.IsType<Syntax.CallStatement>(item);
         Assert.Equal("function", callStatement.Name);
-        Assert.Equal(2, callStatement.Parameters.Count);
-        Assert.Equal("\"a,b\"", callStatement.Parameters[0]);
-        Assert.Equal("42", callStatement.Parameters[1]);
+        Assert.Equal("\"a,b\", 42", callStatement.Arguments);
     }
 
     [Fact(
@@ -866,8 +854,42 @@ public class ParserTests
         var item = Assert.Single(result);
         var callStatement = Assert.IsType<Syntax.CallStatement>(item);
         Assert.Equal("func", callStatement.Name);
-        Assert.Equal(2, callStatement.Parameters.Count);
-        Assert.Equal("\"value, with, commas\"", callStatement.Parameters[0]);
-        Assert.Equal("(1, 2, 3)", callStatement.Parameters[1]);
+        Assert.Equal("\"value, with, commas\", (1, 2, 3)", callStatement.Arguments);
+    }
+
+    [Fact(DisplayName = "An escaped backslash before a quote does not affect the argument span")]
+    public void Case44()
+    {
+        const string template = "{% call function(\"a\\\\\", 1) %}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+        var item = Assert.Single(result);
+        var callStatement = Assert.IsType<Syntax.CallStatement>(item);
+        Assert.Equal("function", callStatement.Name);
+        Assert.Equal("\"a\\\\\", 1", callStatement.Arguments);
+    }
+
+    [Fact(DisplayName = "A comma inside an interpolation hole is preserved in the argument span")]
+    public void Case45()
+    {
+        const string template = "{% call function($\"{new { Value = \"a,b\" } }\", 2) %}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+        var item = Assert.Single(result);
+        var callStatement = Assert.IsType<Syntax.CallStatement>(item);
+        Assert.Equal("function", callStatement.Name);
+        Assert.Equal("$\"{new { Value = \"a,b\" } }\", 2", callStatement.Arguments);
+    }
+
+    [Fact(DisplayName = "A comma inside brace depth is preserved in the argument span")]
+    public void Case46()
+    {
+        const string template = "{% call function(new[]{1, 2}, x) %}";
+        var tokens = Lexer.Tokenize(template);
+        var result = Parser.Parse(tokens, template);
+        var item = Assert.Single(result);
+        var callStatement = Assert.IsType<Syntax.CallStatement>(item);
+        Assert.Equal("function", callStatement.Name);
+        Assert.Equal("new[]{1, 2}, x", callStatement.Arguments);
     }
 }

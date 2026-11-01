@@ -66,7 +66,7 @@ internal abstract record Syntax
 
     internal sealed record VarStatement(TokenList Assignment) : Syntax;
 
-    internal sealed record CallStatement(string Name, IReadOnlyList<string> Parameters) : Syntax;
+    internal sealed record CallStatement(string Name, string Arguments) : Syntax;
 
     internal sealed record BreakStatement : Syntax
     {
