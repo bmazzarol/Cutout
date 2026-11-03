@@ -63,7 +63,8 @@ string literal.
 Any valid C# expression can be used in the template as it is compiled to C#
 code. So if something is not working, the compiler will tell you.
 
-It supports the whitespace control characters `-` the same as liquid.
+It supports the whitespace control characters `-` the same as liquid. A `-`
+removes _all_ whitespace and newlines adjacent to the tag on that side.
 
 One deviation from liquid is that there is only one end keyword, `{% end %}`.
 

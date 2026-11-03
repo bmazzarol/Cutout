@@ -77,19 +77,16 @@ public class ForStatementTests
             This is an example template for a product with tags.
 
             These are the tags,
-
             * awesome
             * shoes
             * cool
 
             These can also be numbered,
-
             1. awesome
             2. shoes
             3. cool
 
             And used with traditional for loop,
-
             1. awesome
             2. shoes
             3. cool

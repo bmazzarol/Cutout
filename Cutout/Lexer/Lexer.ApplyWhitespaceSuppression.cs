@@ -37,25 +37,19 @@ internal static partial class Lexer
 
     private static void RemoveLeadingWhitespaceAndNewline(TokenList result)
     {
-        var index = result.Count - 1;
-        if (index >= 0 && result[index].Type == TokenType.Whitespace)
+        while (result.Count > 0 && IsWhitespaceOrNewline(result[result.Count - 1].Type))
         {
-            result.RemoveAt(index--);
-        }
-        if (index >= 0 && result[index].Type == TokenType.Newline)
-        {
-            result.RemoveAt(index);
+            result.RemoveAt(result.Count - 1);
         }
     }
+
+    private static bool IsWhitespaceOrNewline(TokenType type) =>
+        type == TokenType.Whitespace || type == TokenType.Newline;
 
     private static int SkipTrailingWhitespaceAndNewline(TokenList tokens, int startIndex)
     {
         var index = startIndex;
-        if (index < tokens.Count && tokens[index].Type == TokenType.Whitespace)
-        {
-            index++;
-        }
-        if (index < tokens.Count && tokens[index].Type == TokenType.Newline)
+        while (index < tokens.Count && IsWhitespaceOrNewline(tokens[index].Type))
         {
             index++;
         }

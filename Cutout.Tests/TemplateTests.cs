@@ -144,8 +144,7 @@ public class TemplateTests
 
             It has a conditional block,
 
-            The result is positive.
-            And " is escaped.
+            The result is positive.And " is escaped.
             """,
             builder.ToString()
         );

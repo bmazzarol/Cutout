@@ -25,8 +25,6 @@ This is a test!
         {
             builder.Append(@"Hang in there baby!");
         }
-        builder.Append(@"
-    ");
-        childPart(builder, name, "    ");
+        childPart(builder, name);
     }
 }
