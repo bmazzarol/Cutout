@@ -473,7 +473,7 @@ public class LexerTests
         var tokens = Lexer.Tokenize(text);
         Assert.Equal(text, tokens.ToString(text));
         var withWsSuppression = Lexer.ApplyWhitespaceSuppression(tokens);
-        Assert.Equal("  {{- render block -}}{%- more code -%}  ", withWsSuppression.ToString(text));
+        Assert.Equal("{{- render block -}}{%- more code -%}", withWsSuppression.ToString(text));
     }
 
     [Fact(DisplayName = "Code and render blocks can be mixed in a single text")]
@@ -482,5 +482,15 @@ public class LexerTests
         const string text = "This is {{ render block }}\n{% code block %} ";
         var tokens = Lexer.Tokenize(text);
         Assert.Equal(text, tokens.ToString(text));
+    }
+
+    [Fact(DisplayName = "Whitespace suppression greedily strips every adjacent whitespace and newline")]
+    public void Case9()
+    {
+        const string text = "text\n\n   \n{{- hole -}}\n\n   tail";
+        var tokens = Lexer.Tokenize(text);
+        Assert.Equal(text, tokens.ToString(text));
+        var withWsSuppression = Lexer.ApplyWhitespaceSuppression(tokens);
+        Assert.Equal("text{{- hole -}}tail", withWsSuppression.ToString(text));
     }
 }

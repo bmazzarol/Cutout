@@ -25,8 +25,6 @@ This is a test!
         {
             builder.Append(@"Hang in there baby!");
         }
-        builder.Append(Cutout.RenderUtilities.ApplyExtraWhitespace(@"
-    ", whitespace));
-        childPart(builder, name, whitespace + "    ");
+        childPart(builder, name, whitespace);
     }
 }
