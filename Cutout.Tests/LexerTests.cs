@@ -484,7 +484,9 @@ public class LexerTests
         Assert.Equal(text, tokens.ToString(text));
     }
 
-    [Fact(DisplayName = "Whitespace suppression greedily strips every adjacent whitespace and newline")]
+    [Fact(
+        DisplayName = "Whitespace suppression greedily strips every adjacent whitespace and newline"
+    )]
     public void Case9()
     {
         const string text = "text\n\n   \n{{- hole -}}\n\n   tail";

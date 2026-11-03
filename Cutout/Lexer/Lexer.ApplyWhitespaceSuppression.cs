@@ -37,8 +37,13 @@ internal static partial class Lexer
 
     private static void RemoveLeadingWhitespaceAndNewline(TokenList result)
     {
-        while (result.Count > 0 &&
-            (result[result.Count - 1].Type == TokenType.Whitespace || result[result.Count - 1].Type == TokenType.Newline))
+        while (
+            result.Count > 0
+            && (
+                result[result.Count - 1].Type == TokenType.Whitespace
+                || result[result.Count - 1].Type == TokenType.Newline
+            )
+        )
         {
             result.RemoveAt(result.Count - 1);
         }
@@ -47,8 +52,13 @@ internal static partial class Lexer
     private static int SkipTrailingWhitespaceAndNewline(TokenList tokens, int startIndex)
     {
         var index = startIndex;
-        while (index < tokens.Count &&
-            (tokens[index].Type == TokenType.Whitespace || tokens[index].Type == TokenType.Newline))
+        while (
+            index < tokens.Count
+            && (
+                tokens[index].Type == TokenType.Whitespace
+                || tokens[index].Type == TokenType.Newline
+            )
+        )
         {
             index++;
         }
