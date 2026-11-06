@@ -96,9 +96,10 @@ public sealed record Ok<T>(T Value) : Result<T>
         }
         catch (Exception ex)
         {
-            var origin = originSelector == null ? null : originSelector(Value);
             return new Err<U>(
-                EquatableArray<GenerationError>.Create(GenerationError.FromException(ex, origin))
+                EquatableArray<GenerationError>.Create(
+                    GenerationError.FromException(ex, originSelector?.Invoke(Value))
+                )
             );
         }
     }
@@ -221,7 +222,7 @@ public sealed class EquatableArray<T> : IEnumerable<T>, IEquatable<EquatableArra
         var hash = 0;
         foreach (var item in items)
         {
-            hash = hash * 17 + (item == null ? 0 : item.GetHashCode());
+            hash = hash * 17 + (item?.GetHashCode() ?? 0);
         }
         _hashCode = hash;
     }
@@ -229,14 +230,12 @@ public sealed class EquatableArray<T> : IEnumerable<T>, IEquatable<EquatableArra
     /// <summary>Convenience factory from a parameter list.</summary>
     /// <param name="items">The items.</param>
     /// <returns>The value-equatable array.</returns>
-    public static EquatableArray<T> Create(params T[] items) =>
-        new EquatableArray<T>(items.ToImmutableArray());
+    public static EquatableArray<T> Create(params T[] items) => new([.. items]);
 
     /// <summary>Convenience factory from any enumerable.</summary>
     /// <param name="items">The items.</param>
     /// <returns>The value-equatable array.</returns>
-    public static EquatableArray<T> Create(IEnumerable<T> items) =>
-        new EquatableArray<T>(items.ToImmutableArray());
+    public static EquatableArray<T> Create(IEnumerable<T> items) => new([.. items]);
 
     /// <summary>Number of items.</summary>
     public int Count => _items.Length;
@@ -343,4 +342,16 @@ public class FirebreakPocCounters
 
     /// <summary>Total diagnostics reported from captured failures.</summary>
     public int ReportedDiagnostics { get; set; }
+}
+
+public static class IncrementalValuesProviderExtensions
+{
+    public static IncrementalValuesProvider<Result<TOut>> Select<TIn, TOut>(
+        this IncrementalValuesProvider<Result<TIn>> source,
+        Func<TIn, TOut> selector,
+        Func<TIn, SyntaxNode>? originSelector = null
+    )
+    {
+        return source.Select((result, _) => result.Map(selector, originSelector));
+    }
 }

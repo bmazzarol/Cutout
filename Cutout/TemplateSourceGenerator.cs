@@ -45,49 +45,34 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
             (ctx, token) =>
             {
                 _pocCounters.EntryInvocations++;
-                Result<TemplateMethodDetails> entry;
-                try
-                {
-                    entry = new Ok<TemplateMethodDetails>(BuildTemplateDetails(ctx, token));
-                }
-                catch (Exception ex)
-                {
-                    entry = new Err<TemplateMethodDetails>(
-                        EquatableArray<GenerationError>.Create(
-                            GenerationError.FromException(ex, ctx.TargetNode)
-                        )
-                    );
-                }
-                return entry;
+                return BuildTemplateDetails(ctx, token);
             }
         );
 
         // Parse stage: exceptions (ParseException) become located Err values.
         // Err items pass through untouched — they are cached as value-equal data.
         var parsedAttributeTemplates = attributeTemplateProvider.Select(
-            (details, token) =>
-                details.Map(
-                    d =>
-                    {
-                        _pocCounters.ParseInvocations++;
-                        try
-                        {
-                            _ = d.AttributeDetails.Syntaxes;
-                        }
-                        catch (ParseException ex)
-                        {
-                            throw new LocatedFailureException(
-                                GenerationError.At(
-                                    FirebreakDescriptors.TemplateParseError,
-                                    $"{d.ClassDetails.Name}.{d.MethodDetails.Name}: {ex.Message}",
-                                    d.MethodDetails.MethodDeclaration
-                                )
-                            );
-                        }
-                        return d;
-                    },
-                    d => d.MethodDetails.MethodDeclaration
-                )
+            details =>
+            {
+                _pocCounters.ParseInvocations++;
+                try
+                {
+                    _ = details.AttributeDetails.Syntaxes;
+                }
+                catch (ParseException ex)
+                {
+                    throw new LocatedFailureException(
+                        GenerationError.At(
+                            FirebreakDescriptors.TemplateParseError,
+                            $"{details.ClassDetails.Name}.{details.MethodDetails.Name}: {ex.Message}",
+                            details.MethodDetails.MethodDeclaration
+                        )
+                    );
+                }
+
+                return details;
+            },
+            d => d.MethodDetails.MethodDeclaration
         );
 
         context.RegisterSourceOutput(parsedAttributeTemplates, GenerateTemplate);
@@ -108,29 +93,26 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
             .Combine(fileTemplateAttributeProvider)
             .SelectMany(BuildTemplateDetailsFromFile)
             .Select(
-                (details, token) =>
-                    details.Map(
-                        d =>
-                        {
-                            _pocCounters.ParseInvocations++;
-                            try
-                            {
-                                _ = d.AttributeDetails.Syntaxes;
-                            }
-                            catch (ParseException ex)
-                            {
-                                throw new LocatedFailureException(
-                                    GenerationError.At(
-                                        FirebreakDescriptors.TemplateParseError,
-                                        $"{d.ClassDetails.Name}.{d.MethodDetails.Name}: {ex.Message}",
-                                        d.MethodDetails.MethodDeclaration
-                                    )
-                                );
-                            }
-                            return d;
-                        },
-                        d => d.MethodDetails.MethodDeclaration
-                    )
+                d =>
+                {
+                    _pocCounters.ParseInvocations++;
+                    try
+                    {
+                        _ = d.AttributeDetails.Syntaxes;
+                    }
+                    catch (ParseException ex)
+                    {
+                        throw new LocatedFailureException(
+                            GenerationError.At(
+                                FirebreakDescriptors.TemplateParseError,
+                                $"{d.ClassDetails.Name}.{d.MethodDetails.Name}: {ex.Message}",
+                                d.MethodDetails.MethodDeclaration
+                            )
+                        );
+                    }
+                    return d;
+                },
+                d => d.MethodDetails.MethodDeclaration
             );
 
         context.RegisterSourceOutput(fileTemplateProvider, GenerateTemplate);
@@ -209,46 +191,47 @@ public sealed partial class TemplateSourceGenerator : IIncrementalGenerator
             Result<TemplateMethodDetails> entry;
             try
             {
-                entry = new Ok<TemplateMethodDetails>(
-                    BuildTemplateDetailsFromSyntax(
-                        methodContext.semanticModel,
-                        methodContext.methodDeclarationSyntax,
-                        methodContext.methodSymbol,
-                        templateText
-                    )
+                entry = BuildTemplateDetailsFromSyntax(
+                    methodContext.semanticModel,
+                    methodContext.methodDeclarationSyntax,
+                    methodContext.methodSymbol,
+                    templateText
                 );
             }
             catch (Exception ex)
             {
-                entry = new Err<TemplateMethodDetails>(
-                    EquatableArray<GenerationError>.Create(
-                        GenerationError.FromException(ex, methodContext.methodDeclarationSyntax)
-                    )
-                );
+                entry = GenerationError.FromException(ex, methodContext.methodDeclarationSyntax);
             }
 
             yield return entry;
         }
     }
 
-    private static TemplateMethodDetails BuildTemplateDetails(
+    private static Result<TemplateMethodDetails> BuildTemplateDetails(
         GeneratorAttributeSyntaxContext ctx,
         CancellationToken token
     )
     {
-        var methodDeclarationSyntax = (MethodDeclarationSyntax)ctx.TargetNode;
+        try
+        {
+            var methodDeclarationSyntax = (MethodDeclarationSyntax)ctx.TargetNode;
 
-        var methodSymbol = ctx.SemanticModel.GetDeclaredSymbol(
-            methodDeclarationSyntax,
-            cancellationToken: token
-        )!;
+            var methodSymbol = ctx.SemanticModel.GetDeclaredSymbol(
+                methodDeclarationSyntax,
+                cancellationToken: token
+            )!;
 
-        return BuildTemplateDetailsFromSyntax(
-            ctx.SemanticModel,
-            methodDeclarationSyntax,
-            methodSymbol,
-            template: null
-        );
+            return BuildTemplateDetailsFromSyntax(
+                ctx.SemanticModel,
+                methodDeclarationSyntax,
+                methodSymbol,
+                template: null
+            );
+        }
+        catch (Exception ex)
+        {
+            return GenerationError.FromException(ex, ctx.TargetNode);
+        }
     }
 
     private static TemplateMethodDetails BuildTemplateDetailsFromSyntax(
