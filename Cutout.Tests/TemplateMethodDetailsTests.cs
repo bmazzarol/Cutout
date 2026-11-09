@@ -24,7 +24,10 @@ public static class TemplateMethodDetailsTests
         return new TemplateMethodDetails(
             Namespace: symbol.ContainingNamespace?.ToDisplayString(),
             Usings: SF.List<UsingDirectiveSyntax>(),
-            ClassDetails: new ClassDetails(symbol.ContainingType.Name, (INamedTypeSymbol)symbol.ContainingType),
+            ClassDetails: new ClassDetails(
+                symbol.ContainingType.Name,
+                (INamedTypeSymbol)symbol.ContainingType
+            ),
             MethodDetails: new MethodDetails(method.Identifier.Text, method, symbol),
             AttributeDetails: new TemplateAttributeParts(template)
         );

@@ -23,7 +23,13 @@ internal sealed record TemplateMethodDetails(
     private string? _identity;
 
     private string Identity =>
-        _identity ??= BuildIdentity(Namespace, Usings, ClassDetails, MethodDetails, AttributeDetails);
+        _identity ??= BuildIdentity(
+            Namespace,
+            Usings,
+            ClassDetails,
+            MethodDetails,
+            AttributeDetails
+        );
 
     private static string BuildIdentity(
         string? ns,
@@ -44,7 +50,11 @@ internal sealed record TemplateMethodDetails(
         builder.Append(methodDetails.Name).Append('\u0001');
         foreach (var parameter in methodDetails.MethodSymbol.Parameters)
         {
-            builder.Append(parameter.Type.ToDisplayString()).Append(' ').Append(parameter.Name).Append('\u0001');
+            builder
+                .Append(parameter.Type.ToDisplayString())
+                .Append(' ')
+                .Append(parameter.Name)
+                .Append('\u0001');
         }
         builder.Append(attributeDetails.Template);
         return builder.ToString();
